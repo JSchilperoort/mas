@@ -1,4 +1,6 @@
+
 class Card:
-	def __init__(self, Type):
-		self.Type = Type
+
+	def __init__(self, influence):
+		self.influence = influence
 		#self.actions = []

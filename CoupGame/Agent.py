@@ -1,4 +1,4 @@
-
+import random
 
 class Agent:
 	def __init__(self, identifier, property_1, property_2, property_3):
@@ -11,14 +11,28 @@ class Agent:
 		self.actions_active = []
 		self.actions_reactive = []
 
+	def get_id(self):
+		return self.identifier
+
 	def add_card(self,card):
 		self.cards.append(card)
 
+	def remove_card(self):
+		random.shuffle(self.cards)
+		self.cards.pop()		
+		
 	def get_cards(self):
 		return self.cards
 
 	def get_coins(self):
 		return self.coins
+
+	def add_coins(self, amount):
+
+		self.coins += amount
+
+	def remove_coins(self, amount):
+		self.coins -= amount
 
 	def get_possible_actions(self, action_type):
 		actions = []

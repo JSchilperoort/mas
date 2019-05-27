@@ -15,6 +15,7 @@ class Coup:
 		self.set_players()
 		self.all_actions_active = ["tax", "steal", "swap_influence"]
 		self.all_actions_reactive = ["block_foreign_aid", "block_assassination", "block_steal"]
+		self.actions = Action()
 
 	def deal_card(self):
 		random.shuffle(self.deck)
@@ -45,11 +46,11 @@ class Coup:
 							
 	def choose_action(self, agent):
 
-
-
 		if agent.get_coins() >= 7:
+			target = self.get_random_target(agent)
 			# agent must coup if coins are >= 7
 			action = "coup"
+			self.actions.choose_action(action, agent, target)
 
 		else:
 			bluff = 0
@@ -65,7 +66,12 @@ class Coup:
 				possible_actions_reactive = []
 				for card_actions in agent.get_possible_actions("active"):
 					for action in card_actions:
-						possible_actions_active.append(action)
+						if action == "assassinate":
+							if agent.get_coins() >= 3: 
+								# only allow assasinate if agent has >= 3 coins
+								possible_actions_active.append(action)
+						else:
+							possible_actions_active.append(action)
 
 				for card_actions in agent.get_possible_actions("reactive"):
 					for action in card_actions:
@@ -78,7 +84,8 @@ class Coup:
 				possible_actions_reactive = list(filter(None, possible_actions_reactive))
 
 				action = random.choice(possible_actions_active)
-				print("Action chosen:", action)
+				target = self.get_random_target(agent)
+				self.actions.choose_action(action, agent, target)
 
 
 			else:
@@ -99,6 +106,16 @@ class Coup:
 
 			self.turn_counter = 0
 		return agent
+
+	def get_random_target(self, agent):
+		target_ids = []
+		for i in range(self.n_players):
+			if i != agent.get_id():
+				target_ids.append(i)
+
+		target = self.players[target_ids[0]]
+		return target
+
 
 
 	def get_players(self):

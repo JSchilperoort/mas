@@ -8,7 +8,7 @@ def main(argv):
 
 	print_game(game)
 
-	n_turns = 10
+	n_turns = 4
 
 	for i in range(0, n_turns):
 		turn(game)
@@ -16,6 +16,11 @@ def main(argv):
 def turn(game):
 	agent = game.get_next_agent()
 	print("Agent", agent.get_identifier(), "turn:")
+	print("Coins:", agent.get_coins())
+	print("Cards:")
+	for card in agent.get_cards():
+		print(card.get_influence())
+	#print("\n")
 	game.choose_action(agent)
 	print("\n")
 

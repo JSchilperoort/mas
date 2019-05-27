@@ -1,5 +1,7 @@
 
 class Action():
+	def __init__(self, action):
+		actions = ["tax", "assassinate", "income", "coup", "steal", "swap_influence", "block_foreign_aid", "block_assassination", "block_steal"]
 
 	def tax(self, bluff):
 		return None

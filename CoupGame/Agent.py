@@ -1,14 +1,31 @@
 
 
 class Agent:
-    def __init__(self, property_1, property_2, property_3):
-        self.prop1 = property_1
-        self.prop2 = property_2
-        self.prop3 = property_3
-        self.cards = []
+	def __init__(self, identifier, property_1, property_2, property_3):
+		self.identifier = identifier
+		self.prop1 = property_1
+		self.prop2 = property_2
+		self.prop3 = property_3
+		self.cards = []
+		self.coins = 2
+		self.actions_active = []
+		self.actions_reactive = []
 
-    def add_card(self,card):
-    	self.cards.append(card)
+	def add_card(self,card):
+		self.cards.append(card)
 
-    def get_cards(self):
-    	return self.cards
+	def get_cards(self):
+		return self.cards
+
+	def get_coins(self):
+		return self.coins
+
+	def get_possible_actions(self, action_type):
+		actions = []
+		for card in self.cards:
+			action = card.get_action(action_type)
+			actions.append(action)
+		return actions
+
+	def get_identifier(self):
+		return self.identifier

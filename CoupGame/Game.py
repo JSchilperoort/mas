@@ -5,20 +5,15 @@ from Coup import Coup
 def main(argv):
 
 	n_players = 6
-	n_games = 5
+	n_turns = 5
 
-	for i in range(0, n_games):
-		game = Coup(n_players)
+	game = Coup(n_players)
+	print_game(game)
 
-		print_game(game)
+	for i in range(0, n_turns):
+		turn(game)
+		game.remove_dead_players()
 
-		n_turns = 100
-
-		# for i in range(0, n_turns):
-		while not game.finished:
-			turn(game)
-			game.remove_dead_players()
-		input()
 
 
 def turn(game):

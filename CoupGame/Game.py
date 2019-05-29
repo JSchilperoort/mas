@@ -8,7 +8,7 @@ def main(argv):
 
 	print_game(game)
 
-	n_turns = 4
+	n_turns = 6
 
 	for i in range(0, n_turns):
 		turn(game)

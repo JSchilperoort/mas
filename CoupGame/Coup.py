@@ -55,46 +55,104 @@ class Coup:
 		else:
 			bluff = 0
 			rand_int = random.randint(1, 4)
-			if rand_int >= 4:
+			if rand_int >= 2:
 				bluff = 1
 
+			cards = agent.get_cards()
+			possible_actions_active = []
+			possible_actions_reactive = []
+			for card_actions in agent.get_possible_actions("active"):
+				for action in card_actions:
+					if action == "assassinate":
+						if agent.get_coins() >= 3: 
+							# only allow assasinate if agent has >= 3 coins
+							possible_actions_active.append(action)
+					else:
+						possible_actions_active.append(action)
+
+			for card_actions in agent.get_possible_actions("reactive"):
+				for action in card_actions:
+					possible_actions_reactive.append(action)
+
+			possible_actions_active.append("income")
+			possible_actions_active = set(possible_actions_active)
+			possible_actions_reactive = set(possible_actions_reactive)
+			possible_actions_active = list(filter(None, possible_actions_active))
+			possible_actions_reactive = list(filter(None, possible_actions_reactive))
+			#print(possible_actions_active)
 			if bluff == 0:
 				# No bluff: pick one of the available card actions
 				print("Agent chooses: no bluff")
-				cards = agent.get_cards()
-				possible_actions_active = []
-				possible_actions_reactive = []
-				for card_actions in agent.get_possible_actions("active"):
-					for action in card_actions:
-						if action == "assassinate":
-							if agent.get_coins() >= 3: 
-								# only allow assasinate if agent has >= 3 coins
-								possible_actions_active.append(action)
-						else:
-							possible_actions_active.append(action)
-
-				for card_actions in agent.get_possible_actions("reactive"):
-					for action in card_actions:
-						possible_actions_reactive.append(action)
-
-				possible_actions_active.append("income")
-				possible_actions_active = set(possible_actions_active)
-				possible_actions_reactive = set(possible_actions_reactive)
-				possible_actions_active = list(filter(None, possible_actions_active))
-				possible_actions_reactive = list(filter(None, possible_actions_reactive))
 
 				action = random.choice(possible_actions_active)
 				target = self.get_random_target(agent)
+				print("Action chooses:", action)
+				print("Target: Agent", target.get_id())
+				if action == "tax":
+					rand_int = random.randint(1, 4)
+					if rand_int >= 4:
+						# random agent wrongfully calls bluff
+						caller = self.get_random_target(agent)
+						caller.remove_card()
+
+				elif action == "assassinate":
+					if target.has_card("countessa"):
+						# target calls block with countessa
+						rand_int = random.randint(1, 4)
+						if rand_int >= 4:
+							# agent wrongfully calls bluff
+							agent.remove_card()
+					else:
+						rand_int = random.randint(1, 4)
+						if rand_int >= 4:
+							# target bluffs that he has countessa
+							rand_int = random.randint(1, 4)
+							if rand_int >= 3:
+								# agent believes the bluff: pay the 3 coins, nothing happens
+								agent.remove_coins(3)
+							else:
+								# agent calls the bluff
+								target.remove_card()
+
+
+				elif action == "steal":
+					if target.has_card("captain"):
+						# target calls block with captain
+						rand_int = random.randint(1, 4)
+						if rand_int >= 4:
+							# agent wrongfully calls bluff
+							agent.remove_card()
+					else:
+						
+						rand_int = random.randint(1, 4)
+						if rand_int >= 4:
+							# target bluffs that he has captain
+							rand_int = random.randint(1, 4)
+							if rand_int >= 3:
+								# agent believes the bluff: nothing happens
+								pass
+							else:
+								# agent calls the bluff
+								target.remove_card()
+
 				self.actions.choose_action(action, agent, target)
 
 
+
 			else:
-				# Bluff: pick a random action
+				# Bluff: pick a random action 
+				all_actions_active = self.all_actions_active.copy()
+				if agent.get_coins() >= 3:
+					all_actions_active.append("assassinate")
+				bluff_actions = []
+
 				print("Agent chooses: bluff")
-				actions = self.all_actions_active
-				if agent.get_coins() >= 3: 
-					actions.append("assassinate")
-				action = random.choice(actions)
+				for action in all_actions_active:
+					if action not in possible_actions_active:
+						bluff_actions.append(action)
+				#print(all_actions_active)
+				#print(bluff_actions)
+				action = random.choice(bluff_actions)
 				print("Action chosen:", action)
 
 

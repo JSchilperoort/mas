@@ -24,29 +24,23 @@ class Action():
 			self.block_steal()		
 				
 	def tax(self, agent):
-		print("Action chosen: tax")
 		agent.add_coins(3)
 
 	def forgein_aid(self, agent):
-		print("Action chosen: forgein aid")
 		agent.add_coins(2)
 
 	def assassinate(self, agent, target):
-		print("Action chosen: assassinate. Target: agent",target.get_id())
 		agent.remove_coins(3)
 		target.remove_card()
 
 	def income(self, agent):
-		print("Action chosen: income")
 		agent.add_coins(1)
 
 	def coup(self, agent, target):
-		print("Action chosen: coup. Target: agent",target.get_id())
 		agent.remove_coins(7)
 		target.remove_card()
 
 	def steal(self, agent, target):
-		print("Action chosen: steal. Target: agent",target.get_id())
 		agent.add_coins(2)
 		target.remove_coins(2)
 

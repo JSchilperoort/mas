@@ -41,5 +41,11 @@ class Agent:
 			actions.append(action)
 		return actions
 
+	def has_card(self, influence):
+		if influence in self.cards:
+			return True
+		else:
+			return False
+
 	def get_identifier(self):
 		return self.identifier

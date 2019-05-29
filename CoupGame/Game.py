@@ -5,7 +5,7 @@ from Coup import Coup
 def main(argv):
 
 	n_players = 6
-	n_turns = 5
+	n_turns = 10000
 
 	game = Coup(n_players)
 	print_game(game)
@@ -13,6 +13,9 @@ def main(argv):
 	for i in range(0, n_turns):
 		turn(game)
 		game.remove_dead_players()
+
+		if game.finished:
+			break
 
 
 

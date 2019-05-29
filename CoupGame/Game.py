@@ -1,21 +1,31 @@
 import sys
 from Coup import Coup
 
+
 def main(argv):
 
-	n_players = 2
-	game = Coup(n_players)
+	n_players = 6
+	n_games = 5
 
-	print_game(game)
+	for i in range(0, n_games):
+		game = Coup(n_players)
 
-	n_turns = 4
+		print_game(game)
 
-	for i in range(0, n_turns):
-		turn(game)
+		n_turns = 100
+
+		# for i in range(0, n_turns):
+		while not game.finished:
+			turn(game)
+			game.remove_dead_players()
+		input()
+
 
 def turn(game):
 	agent = game.get_next_agent()
+
 	print("Agent", agent.get_identifier(), "turn:")
+	print("Alive = {0}".format(agent.alive))
 	print("Coins:", agent.get_coins())
 	print("Cards:")
 	for card in agent.get_cards():

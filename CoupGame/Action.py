@@ -50,6 +50,7 @@ class Action():
 		agent.add_coins(2)
 		target.remove_coins(2)
 
+	# TODO these still have to be implemented
 	def swap_influence(self):
 		return None
 

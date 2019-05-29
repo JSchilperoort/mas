@@ -10,6 +10,7 @@ class Agent:
 		self.coins = 2
 		self.actions_active = []
 		self.actions_reactive = []
+		self.alive = True
 
 	def get_id(self):
 		return self.identifier
@@ -19,7 +20,9 @@ class Agent:
 
 	def remove_card(self):
 		random.shuffle(self.cards)
-		self.cards.pop()		
+		self.cards.pop()
+		if len(self.cards) <= 0:
+			self.alive = False
 		
 	def get_cards(self):
 		return self.cards

@@ -16,6 +16,7 @@ class Coup:
 		self.all_actions_active = ["tax", "steal", "swap_influence"]
 		self.all_actions_reactive = ["block_foreign_aid", "block_assassination", "block_steal"]
 		self.actions = Action()
+		self.finished = False
 
 	def deal_card(self):
 		random.shuffle(self.deck)
@@ -23,8 +24,8 @@ class Coup:
 		return card
 
 	def make_deck(self):
-		for i in range(3):
-			self.deck.append(Card("ambassador"))
+		# for i in range(3):
+		# 	self.deck.append(Card("ambassador"))
 		for i in range(3):
 			self.deck.append(Card("assassin"))
 		for i in range(3):
@@ -84,6 +85,9 @@ class Coup:
 				possible_actions_reactive = list(filter(None, possible_actions_reactive))
 
 				action = random.choice(possible_actions_active)
+
+				# TODO: prompt action, let other agents react to this prompt (call bluff for example)
+
 				target = self.get_random_target(agent)
 				self.actions.choose_action(action, agent, target)
 
@@ -91,7 +95,8 @@ class Coup:
 			else:
 				# Bluff: pick a random action
 				print("Agent chooses: bluff")
-				actions = self.all_actions_active
+				actions = self.all_actions_active.copy()
+				print(actions)
 				if agent.get_coins() >= 3: 
 					actions.append("assassinate")
 				action = random.choice(actions)
@@ -99,12 +104,14 @@ class Coup:
 
 
 	def get_next_agent(self):
+		print(self.turn_counter)
+		if self.turn_counter >= self.n_players:
+			self.turn_counter = 0
+
 		agent = self.players[self.turn_counter]
 		self.turn_counter += 1
 
-		if self.turn_counter >= self.n_players:
 
-			self.turn_counter = 0
 		return agent
 
 	def get_random_target(self, agent):
@@ -113,10 +120,21 @@ class Coup:
 			if i != agent.get_id():
 				target_ids.append(i)
 
-		target = self.players[target_ids[0]]
+		target = random.choice(self.players)
 		return target
 
-
+	def remove_dead_players(self):
+		to_remove = list()
+		for agent in self.players:
+			if not agent.alive:
+				to_remove.append(agent)
+		self.players = [x for x in self.players if x not in to_remove]
+		self.n_players = len(self.players)
+		for agent in to_remove:
+			print("-- player {0} was killed".format(agent.identifier))
+		if self.n_players <= 1:
+			print("player {0} won the game!".format(self.players[0].identifier))
+			self.finished = True
 
 	def get_players(self):
 		return self.players

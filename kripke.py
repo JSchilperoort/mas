@@ -3,24 +3,24 @@ from itertools import product, combinations_with_replacement
 
 
 class KripkeModel:
-	def __init__(self, n_players):
+	def __init__(self, n_players, cards):
 		self.n_players = n_players
 		self.worlds = list()
+		self.cards = cards
 
 		self.set_worlds()
 
 	def set_worlds(self):
 		print("setting worlds...")
-		cards = ['assassin', 'countessa', 'captain', 'duke']
 		# all 'possible' distributions of cards
-		player_hands = list(combinations_with_replacement(cards, 2))
+		player_hands = list(combinations_with_replacement(self.cards, 2))
 		possible_arrangements = list(product(player_hands, repeat=self.n_players))
 
 		for pa in possible_arrangements:
 			f = list()
 			for i in range(self.n_players):
 				f.append(list(pa[i]))
-			world = World(f, self.n_players)
+			world = World(f, self.n_players, self.cards)
 			if world.feasible():
 				# no more than 3 instances of each card exists in the game
 				self.worlds.append(world)
@@ -30,8 +30,8 @@ class KripkeModel:
 	def set_relations(self):
 		print("\nsetting relations...")
 		count = 0
-		for player in tqdm(range(self.n_players)):
-			for i_w, world in enumerate(self.worlds):
+		for player in range(self.n_players):
+			for i_w, world in enumerate(tqdm(self.worlds)):
 				w1_cards = world.get_cards(player)
 				for world2 in self.worlds[i_w + 1:]:
 					w2_cards = world2.get_cards(player)
@@ -44,20 +44,16 @@ class KripkeModel:
 
 
 class World:
-	def __init__(self, formulas, n_players):
+	def __init__(self, formulas, n_players, cards):
 		self.formulas = formulas
 		self.n_players = n_players
 		self.relations = [[self]] * n_players
+		self.cards = cards
 
 	def feasible(self):
-		if sum(x.count('assassin') for x in self.formulas) > 3:
-			return False
-		if sum(x.count('countessa') for x in self.formulas) > 3:
-			return False
-		if sum(x.count('captain') for x in self.formulas) > 3:
-			return False
-		if sum(x.count('duke') for x in self.formulas) > 3:
-			return False
+		for card in self.cards:
+			if sum(x.count(card) for x in self.formulas) > 3:
+				return False
 		return True
 
 	def set_relation(self, world, player):
@@ -68,10 +64,12 @@ class World:
 
 
 def main():
-	model = KripkeModel(n_players=4)
-	# 2 players = 96 worlds, 828 relations
-	# 3 players = 780 worlds, 90900 relations
-	# 4 players = 4674 worlds, 4433712 relations
+	cards = ['assassin', 'countessa', 'captain', 'duke']
+	model = KripkeModel(n_players=4, cards=cards)
+	# 2 players = 96 worlds, 828 relations   ~0 seconds
+	# 3 players = 780 worlds, 90900 relations   ~0 seconds
+	# 4 players = 4674 worlds, 4433712 relations   ~12 seconds
+	# 5 players = 16260 worlds, 67616850 relations   ~5 minutes
 
 
 if __name__ == "__main__":

@@ -1,6 +1,5 @@
-import sys
 from tqdm import tqdm
-from itertools import product
+from itertools import product, combinations_with_replacement
 
 
 class KripkeModel:
@@ -14,21 +13,23 @@ class KripkeModel:
 		print("setting worlds...")
 		cards = ['assassin', 'countessa', 'captain', 'duke']
 		# all 'possible' distributions of cards
-		possible_arrangements = product(cards, repeat=self.n_players*2)
+		player_hands = list(combinations_with_replacement(cards, 2))
+		possible_arrangements = list(product(player_hands, repeat=self.n_players))
+
 		for pa in possible_arrangements:
 			f = list()
 			for i in range(self.n_players):
-				f.append([pa[2*i], pa[2*i+1]])
+				f.append(list(pa[i]))
 			world = World(f, self.n_players)
 			if world.feasible():
 				# no more than 3 instances of each card exists in the game
 				self.worlds.append(world)
-		print(len(self.worlds))
+		print("Number of worlds: {0}".format(len(self.worlds)))
 		self.set_relations()
 
 	def set_relations(self):
 		print("\nsetting relations...")
-		index = 0
+		count = 0
 		for player in tqdm(range(self.n_players)):
 			for i_w, world in enumerate(self.worlds):
 				w1_cards = world.get_cards(player)
@@ -36,10 +37,10 @@ class KripkeModel:
 					w2_cards = world2.get_cards(player)
 					# if this player has the same cards in both worlds, add relation
 					if w1_cards == w2_cards:
-						index += 1
+						count += 1
 						world.set_relation(world2, player)
 						world2.set_relation(world, player)
-		print(index)
+		print("Number of relations: {0}".format(count))
 
 
 class World:
@@ -66,12 +67,12 @@ class World:
 		return self.formulas[player]
 
 
-def main(argv):
-	model = KripkeModel(n_players=3)
-	# 2 players = 252 worlds, 3720 relations
-	# 3 players = 3480 worlds, 1138068 relations
-	# 4 players = 36120 worlds, 165544560 relations
+def main():
+	model = KripkeModel(n_players=4)
+	# 2 players = 96 worlds, 828 relations
+	# 3 players = 780 worlds, 90900 relations
+	# 4 players = 4674 worlds, 4433712 relations
 
 
 if __name__ == "__main__":
-	main(sys.argv)
+	main()

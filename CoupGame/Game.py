@@ -3,8 +3,7 @@ from Coup import Coup
 
 
 def main(argv):
-
-	n_players = 6
+	n_players = 4
 	n_turns = 10000
 
 	game = Coup(n_players)

@@ -1,111 +1,107 @@
-
-"""
-ZetCode Tkinter tutorial
-
-The example draws lines on the Canvas.
-
-Author: Jan Bodnar
-Last modified: April 2019
-Website: www.zetcode.com
-"""
-
+from Coup import Coup
 import tkinter as tk
 from PIL import Image, ImageTk
-import os
 
-class Application(tk.Frame):
-
-    def __init__(self, root):
-        super().__init__()
+class MainApplication(tk.Frame):
+    def __init__(self, root, game, *args, **kwargs):
+        tk.Frame.__init__(self, root, *args, **kwargs)
         self.root = root
+        self.game = game
+        self.img_ref = []
         self.initUI()
-
+        self.update()
 
     def initUI(self):
         self.master.title("Coup Project")
-        # #F4EBE8
+        window_w = self.root.winfo_width()
+        root.columnconfigure(1, weight=1)
 
-        w = self.winfo_width()
-        title_frame = tk.Frame(self.root, bg='black', width=w, height=50)
+        title_frame = tk.Frame(self.root, bg="#F4EBE8", bd=10, width=window_w, height=100)
+        game_frame = tk.Frame(self.root, bg='#DDDFDF', width=window_w, height=700)
 
-        self.root.grid_rowconfigure(1, weight=1)
-        self.root.grid_columnconfigure(0, weight=1)
+        title_frame.grid(row=1, column=1, sticky="ew")
+        game_frame.grid(row=2, column=1, sticky="ew")
+        
+        tk.Label(title_frame, text="Coup Game v1.0", bg='#F4EBE8', font=("Helvetica ", 22)).grid(sticky="EW")
+        
+        self.player_frames = []
+        for i in range(self.game.n_players):
+            if i % 2 == 0:
+                color = "red"
+            else:
+                color = "green"
 
-        title_frame.grid(row=0)
-    '''
-        # create all of the main containers
-        top_frame = tk.Frame(self.root, bg='cyan', width=450, height=50, pady=3)
-        center = tk.Frame(self.root, bg='gray2', width=50, height=40, padx=3, pady=3)
-        btm_frame = tk.Frame(self.root, bg='white', width=450, height=45, pady=3)
-        btm_frame2 = tk.Frame(self.root, bg='lavender', width=450, height=60, pady=3)
+            if i == 0:
+                sticky = "nw"
+            elif i == self.game.n_players:
+                sticky= "ew"
+            else:
+                sticky = "n"
 
-        # layout all of the main containers
-        self.root.grid_rowconfigure(1, weight=1)
-        self.root.grid_columnconfigure(0, weight=1)
+            player_frame = tk.Frame(game_frame, width=window_w/self.game.n_players, bg=color, bd=4, height=400)
+            player_frame.grid(row=1, column=i+1, sticky=sticky)
+            self.player_frames.append(player_frame)
 
-        top_frame.grid(row=0, sticky="ew")
-        center.grid(row=1, sticky="nsew")
-        btm_frame.grid(row=3, sticky="ew")
-        btm_frame2.grid(row=4, sticky="ew")
 
-        # create the widgets for the top frame
-        model_label = tk.Label(top_frame, text='Model Dimensions')
-        width_label = tk.Label(top_frame, text='Width:')
-        length_label = tk.Label(top_frame, text='Length:')
-        entry_W = tk.Entry(top_frame, background="pink")
-        entry_L = tk.Entry(top_frame, background="orange")
+    def update(self):
+        self.set_players()
+        self.turn()
+        self.after(100, self.update)
 
-        # layout the widgets in the top frame
-        model_label.grid(row=0, columnspan=3)
-        width_label.grid(row=1, column=0)
-        length_label.grid(row=1, column=2)
-        entry_W.grid(row=1, column=1)
-        entry_L.grid(row=1, column=3)
-
-        # create the center widgets
-        center.grid_rowconfigure(0, weight=1)
-        center.grid_columnconfigure(1, weight=1)
-
-        ctr_left = tk.Frame(center, bg='blue', width=100, height=190)
-        ctr_mid = tk.Frame(center, bg='yellow', width=250, height=190, padx=3, pady=3)
-        ctr_right = tk.Frame(center, bg='green', width=100, height=190, padx=3, pady=3)
-
-        ctr_left.grid(row=0, column=0, sticky="ns")
-        ctr_mid.grid(row=0, column=1, sticky="nsew")
-        ctr_right.grid(row=0, column=2, sticky="ns")
-   
-        self.img_ref = []
-        self.grid()
-        self.canvas = tk.Canvas(self, width=1600, height=900)
-        card_size = (175, 250)
-        card_displacement = 50
-        x_card = 200
-        y_card = 200
-        self.create_card_image((x_card, y_card), card_size, "images/contessa.jpg")
-        self.create_card_image((x_card + card_size[0] + card_displacement, y_card), card_size, "images/duke.jpg")
-        self.canvas.pack(fill="both", expand=True)
-    
-    def create_player_frame(self, playerID):
-        frame = tk.Frame()
+    def set_players(self):
+        i = 0
+        for player_frame, player in zip(self.player_frames, self.game.players):
+            for child in player_frame.winfo_children():
+                child.destroy()
+            i += 1
+            tk.Label(player_frame, text="Player {}".format(i)).grid(row=1, column=1)
+            for j, card in enumerate(player.cards):
+                tk.Label(player_frame, image=self.load_image(self.card_image_path(card.influence), size=(175, 250))).grid(row=2, column=j+1)
+            tk.Label(player_frame, text=player.coins).grid(row=3, column=1, sticky="w")
+            tk.Label(player_frame, image=self.load_image("images/coin.jpg", size=(25,25))).grid(row=3, column=2, sticky="w")
         
 
-    def create_card_image(self, coord, size, path):
-        x,y = coord 
-        w, h = size
-        card_image = Image.open(path)
-        card_image = card_image.resize((w, h), Image.ANTIALIAS)
-        card_image = ImageTk.PhotoImage(card_image)
-        self.canvas.create_image(x-25, y-25, image=card_image,
-                                anchor='nw', tags="image")
-        self.img_ref.append(card_image)  # Keep reference to image
+    def turn(self):
+        agent = self.game.get_next_agent()
 
-    '''
-def main():
+        print("Agent", agent.get_identifier(), "turn:")
+        print("Alive = {0}".format(agent.alive))
+        print("Coins:", agent.get_coins())
+        print("Cards:")
+        for card in agent.get_cards():
+            print(card.get_influence())
+
+        self.game.choose_action(agent)
+        print("\n")
+
+
+    def load_image(self, path, size=None):
+        image = Image.open(path)
+        if size is not None:
+            image = image.resize(size, Image.ANTIALIAS)
+        image = ImageTk.PhotoImage(image)
+        self.img_ref.append(image)
+        return image
+        
+    def card_image_path(self, name):
+        if name is "ambassador":
+            return "images/ambassador.png"
+        elif name is "assassin":
+            return "images/assasin.jpg"
+        elif name is "captain":
+            return "images/captain.jpg"
+        elif name is "countessa":
+            return "images/contessa.jpg"
+        elif name is "duke":
+            return "images/duke.jpg"
+        return "images/duke.jpg"
+        
+if __name__ == "__main__":
     root = tk.Tk()
-    root.geometry('{}x{}'.format(1600, 900))
-    app = Application(root)
+    root.geometry('1600x900')
+    root.update()
+
+    game = Coup(4)
+
+    MainApplication(root,  game).grid()
     root.mainloop()
-
-
-if __name__ == '__main__':
-    main()

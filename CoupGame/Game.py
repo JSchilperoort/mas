@@ -10,15 +10,18 @@ def main(argv):
 	print_game(game)
 
 	for i in range(0, n_turns):
-		turn(game)
-		game.remove_dead_players()
-
+		game.is_finished()
 		if game.finished:
 			break
+		turn(game)
+		#game.remove_dead_players()
+
+
 
 
 
 def turn(game):
+
 	agent = game.get_next_agent()
 
 	print("Agent", agent.get_identifier(), "turn:")

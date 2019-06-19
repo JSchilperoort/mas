@@ -21,10 +21,12 @@ class Agent:
 
 	def remove_card(self):
 		random.shuffle(self.cards)
+		#print(self.alive)
 		card = self.cards.pop()
 		self.dead_cards.append(card)
 		if len(self.cards) <= 0:
 			self.alive = False
+			print("-- player", self.identifier, "was killed")
 		
 	def get_cards(self):
 		return self.cards
@@ -51,6 +53,12 @@ class Agent:
 
 	def has_card(self, influence):
 		if influence in self.cards:
+			return True
+		else:
+			return False
+
+	def is_alive(self):
+		if self.alive == True:
 			return True
 		else:
 			return False

@@ -164,7 +164,7 @@ class Coup:
 				action = random.choice(bluff_actions)
 				print("Action chosen:", action)
 
-
+	"""
 	def get_next_agent(self):
 		print(self.turn_counter)
 		if self.turn_counter >= self.n_players:
@@ -173,18 +173,60 @@ class Coup:
 		agent = self.players[self.turn_counter]
 		self.turn_counter += 1
 
-
 		return agent
+	"""
+
+	def get_next_agent(self):
+		print(self.turn_counter)
+		inf = 1
+		while inf == 1:
+			if self.turn_counter >= self.n_players:
+				self.turn_counter = 0
+			agent = self.players[self.turn_counter]
+			if agent.is_alive() == True:
+				self.turn_counter += 1	
+				return agent	
+			else:
+				self.turn_counter += 1		
+
+
+		
+
+		#for i in range(self.turn_counter, self.n_players):
+
+
+		#agent = self.players[self.turn_counter]
+		
+
+		#return agent
+
 
 	def get_random_target(self, agent):
 		target_ids = []
+	#	target_ids_alive = []
 		for i in range(self.n_players):
-			if i != agent.get_id():
+			if i != agent.get_id() and self.players[i].is_alive() == True:
 				target_ids.append(i)
 
-		target = random.choice(self.players)
+	#	for target_id in target_ids:
+	#		if self.players[target_id].is_alive() == True:
+	#			target_ids_alive.append(target_id)
+		target_id = random.choice(target_ids)
+		target = self.players[target_id]
+		#target = random.choice(self.players)
+
 		return target
 
+	def is_finished(self):
+		alive_agents = 0
+		for agent in self.players:
+			if agent.is_alive():
+				alive_agents += 1
+		if alive_agents <= 1:
+			print("player {0} won the game!".format(self.players[0].identifier))
+			self.finished = True
+
+	"""
 	def remove_dead_players(self):
 		to_remove = list()
 		for agent in self.players:
@@ -197,6 +239,7 @@ class Coup:
 		if self.n_players <= 1:
 			print("player {0} won the game!".format(self.players[0].identifier))
 			self.finished = True
+	"""
 
 	def get_players(self):
 		return self.players

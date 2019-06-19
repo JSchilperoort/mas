@@ -7,6 +7,7 @@ class Agent:
 		self.prop2 = property_2
 		self.prop3 = property_3
 		self.cards = []
+		self.dead_cards = []
 		self.coins = 2
 		self.actions_active = []
 		self.actions_reactive = []
@@ -20,12 +21,16 @@ class Agent:
 
 	def remove_card(self):
 		random.shuffle(self.cards)
-		self.cards.pop()
+		card = self.cards.pop()
+		self.dead_cards.append(card)
 		if len(self.cards) <= 0:
 			self.alive = False
 		
 	def get_cards(self):
 		return self.cards
+
+	def get_dead_cards(self):
+		return self.dead_cards
 
 	def get_coins(self):
 		return self.coins

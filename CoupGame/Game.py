@@ -27,6 +27,9 @@ def turn(game):
 	print("Cards:")
 	for card in agent.get_cards():
 		print(card.get_influence())
+	print("Dead Cards:")
+	for card in agent.get_dead_cards():
+		print(card.get_influence())
 	#print("\n")
 	game.choose_action(agent)
 	print("\n")

@@ -41,9 +41,15 @@ class Action():
 		target.remove_card()
 
 	def steal(self, agent, target):
-		agent.add_coins(2)
-		target.remove_coins(2)
-
+		if target.get_coins() == 0:
+			agent.add_coins(0)
+			target.remove_coins(0)
+		elif target.get_coins() == 1:
+			agent.add_coins(1)
+			target.remove_coins(1)
+		else:
+			agent.add_coins(2)
+			target.remove_coins(2)
 	# TODO these still have to be implemented
 	def swap_influence(self):
 		return None

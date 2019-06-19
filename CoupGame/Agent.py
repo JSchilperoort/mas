@@ -38,7 +38,6 @@ class Agent:
 		return self.coins
 
 	def add_coins(self, amount):
-
 		self.coins += amount
 
 	def remove_coins(self, amount):

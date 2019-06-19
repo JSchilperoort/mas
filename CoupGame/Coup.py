@@ -7,6 +7,7 @@ import random
 class Coup:
 	def __init__(self, n_players):
 		self.n_players = n_players
+		self.alive_agents = n_players
 		self.players = list()
 		self.turn_counter = 0
 		self.deck = []
@@ -225,6 +226,7 @@ class Coup:
 		if alive_agents <= 1:
 			print("player {0} won the game!".format(self.players[0].identifier))
 			self.finished = True
+
 
 	"""
 	def remove_dead_players(self):

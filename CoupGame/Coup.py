@@ -47,13 +47,12 @@ class Coup:
 			player.add_card(card)
 							
 	def choose_action(self, agent):
-
+		# Return Action, Target, IsBluff
 		if agent.get_coins() >= 7:
 			target = self.get_random_target(agent)
 			# agent must coup if coins are >= 7
 			action = "coup"
 			self.actions.choose_action(action, agent, target)
-
 		else:
 			bluff = 0
 			rand_int = random.randint(1, 4)
@@ -142,8 +141,6 @@ class Coup:
 
 				self.actions.choose_action(action, agent, target)
 
-
-
 			else:
 				# Bluff: pick a random action 
 				all_actions_active = self.all_actions_active.copy()
@@ -164,6 +161,7 @@ class Coup:
 				#print(bluff_actions)
 				action = random.choice(bluff_actions)
 				print("Action chosen:", action)
+		return action
 
 	"""
 	def get_next_agent(self):

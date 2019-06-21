@@ -48,19 +48,16 @@ class KripkeModel:
 				return world
 
 	# in 'world', does 'player' know that 'opponent' has 'boolean' 'card'
-	def query(self, true_world_formulas, player, opponent, boolean, card):
-		start_world = self.get_world(true_world_formulas)
-		if start_world is None:
-			print("World with formulas {0} does not exist".format(true_world_formulas))
-			return False
-
-		if boolean:
-			if start_world.has_card_in_all_worlds(player, opponent, card):
-				return True
-		else:
-			if start_world.does_not_have_card_in_any_world(player, opponent, card):
-				return True
-		return False
+	def query(self, cards_player, player, opponent, boolean, card):
+		for world in self.worlds:
+			if cards_player[0] == world.get_cards(player)[0] and cards_player[1] == world.get_cards(player)[1] or cards_player[0] == world.get_cards(player)[1] and cards_player[1] == world.get_cards(player)[0]:
+				if boolean:
+					if not world.has_card_in_all_worlds(player, opponent, card):
+						return False
+				else:
+					if not world.does_not_have_card_in_any_world(player, opponent, card):
+						return False
+		return True
 
 
 class World:
@@ -107,12 +104,12 @@ class World:
 def main():
 	cards = ['assassin', 'countessa', 'captain', 'duke']
 	model = KripkeModel(n_players=3, cards=cards)
-	if model.query([['duke', 'assassin'], ['duke', 'captain'], ['assassin', 'duke']], 1, 2, True, 'captain'):
+	if model.query(['duke', 'assassin'], 1, 2, True, 'captain'):
 		print("Player {0} knows that player {1} has card {2}".format(1, 2, 'captain'))
 	else:
 		print("Player {0} does not know whether player {1} has card {2}".format(1, 2, 'captain'))
 
-	if model.query([['duke', 'assassin'], ['duke', 'captain'], ['assassin', 'duke']], 1, 2, False, 'captain'):
+	if model.query(['duke', 'assassin'], 1, 2, False, 'captain'):
 		print("Player {0} knows that player {1} does not have card {2}".format(1, 2, 'captain'))
 	else:
 		print("Player {0} does not know whether player {1} does not have card {2}".format(1, 2, 'captain'))

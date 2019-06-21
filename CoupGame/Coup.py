@@ -243,3 +243,15 @@ class Coup:
 
 	def get_players(self):
 		return self.players
+	
+	def reset_game(self):
+		self.alive_agents = self.n_players
+		self.players = list()
+		self.turn_counter = 0
+		self.deck = []
+		self.make_deck()
+		self.set_players()
+		self.all_actions_active = ["tax", "steal", "swap_influence"]
+		self.all_actions_reactive = ["block_foreign_aid", "block_assassination", "block_steal"]
+		self.actions = Action()
+		self.finished = False

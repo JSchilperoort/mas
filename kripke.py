@@ -42,6 +42,26 @@ class KripkeModel:
 						world2.set_relation(world, player)
 		print("Number of relations: {0}".format(count))
 
+	def get_world(self, f):
+		for world in self.worlds:
+			if world.same_formulas(f):
+				return world
+
+	# in 'world', does 'player' know that 'opponent' has 'boolean' 'card'
+	def query(self, true_world_formulas, player, opponent, boolean, card):
+		start_world = self.get_world(true_world_formulas)
+		if start_world is None:
+			print("World with formulas {0} does not exist".format(true_world_formulas))
+			return False
+
+		if boolean:
+			if start_world.has_card_in_all_worlds(player, opponent, card):
+				return True
+		else:
+			if start_world.does_not_have_card_in_any_world(player, opponent, card):
+				return True
+		return False
+
 
 class World:
 	def __init__(self, formulas, n_players, cards):
@@ -59,13 +79,44 @@ class World:
 	def set_relation(self, world, player):
 		self.relations[player].append(world)
 
+	def has_card_in_all_worlds(self, player, opponent, card):
+		for relation in self.relations[player]:
+			if not card in relation.get_cards(opponent):
+				return False
+		return True
+
+	def does_not_have_card_in_any_world(self, player, opponent, card):
+		for relation in self.relations[player]:
+			if card in relation.get_cards(opponent):
+				return False
+		return True
+
+	def same_formulas(self, formulas_other):
+		for i, own_hand in enumerate(self.formulas):
+			# print(own_hand)
+			other_hand = formulas_other[i]
+			if not(own_hand[0] == other_hand[0] and own_hand[1] == other_hand[1]) and \
+					not(own_hand[0] == other_hand[1] and own_hand[1] == other_hand[0]):
+				return False
+		return True
+
 	def get_cards(self, player):
 		return self.formulas[player]
 
 
 def main():
 	cards = ['assassin', 'countessa', 'captain', 'duke']
-	model = KripkeModel(n_players=4, cards=cards)
+	model = KripkeModel(n_players=3, cards=cards)
+	if model.query([['duke', 'assassin'], ['duke', 'captain'], ['assassin', 'duke']], 1, 2, True, 'captain'):
+		print("Player {0} knows that player {1} has card {2}".format(1, 2, 'captain'))
+	else:
+		print("Player {0} does not know whether player {1} has card {2}".format(1, 2, 'captain'))
+
+	if model.query([['duke', 'assassin'], ['duke', 'captain'], ['assassin', 'duke']], 1, 2, False, 'captain'):
+		print("Player {0} knows that player {1} does not have card {2}".format(1, 2, 'captain'))
+	else:
+		print("Player {0} does not know whether player {1} does not have card {2}".format(1, 2, 'captain'))
+
 	# 2 players = 96 worlds, 828 relations   ~0 seconds
 	# 3 players = 780 worlds, 90900 relations   ~0 seconds
 	# 4 players = 4674 worlds, 4433712 relations   ~12 seconds

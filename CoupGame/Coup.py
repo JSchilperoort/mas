@@ -176,7 +176,7 @@ class Coup:
 	"""
 
 	def get_next_agent(self):
-		print(self.turn_counter)
+		#print(self.turn_counter)
 		inf = 1
 		while inf == 1:
 			if self.turn_counter >= self.n_players:
@@ -222,7 +222,10 @@ class Coup:
 			if agent.is_alive():
 				alive_agents += 1
 		if alive_agents <= 1:
-			print("player {0} won the game!".format(self.players[0].identifier))
+			for agent in self.players:
+				if agent.is_alive():
+					winner_id = agent.get_id()
+			print("player {0} won the game!".format(winner_id))
 			self.finished = True
 
 

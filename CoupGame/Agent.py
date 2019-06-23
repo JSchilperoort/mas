@@ -22,8 +22,11 @@ class Agent:
 	def remove_card(self):
 		random.shuffle(self.cards)
 		#print(self.alive)
-		card = self.cards.pop()
-		self.dead_cards.append(card)
+		try:
+			card = self.cards.pop()
+			self.dead_cards.append(card)
+		except:
+			pass
 		if len(self.cards) <= 0:
 			self.alive = False
 			print("-- player", self.identifier, "was killed")

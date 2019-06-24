@@ -2,7 +2,7 @@ from Coup import Coup
 import tkinter as tk
 from PIL import Image, ImageTk
 from tkinter import ttk
-import threading
+from Enums import Influence
 
 class MainApplication(tk.Frame):
     def __init__(self, root, game, *args, **kwargs):
@@ -100,7 +100,7 @@ class MainApplication(tk.Frame):
             coin_label.grid(row=1, column=1)
             self.coin_labels.append(coin_label)
             # Coin image label
-            tk.Label(coin_frame, image=self.load_image("images/coin.jpg", size=(25,25)), bg="#fdeca6").grid(row=1, column=2, sticky="nw")
+            tk.Label(coin_frame, image=self.load_image("../images/coin.jpg", size=(25,25)), bg="#fdeca6").grid(row=1, column=2, sticky="nw")
 
             # Initialize action frame that contains gameplay text
             action_frame = tk.Frame(player_frame, width=50, height=200)
@@ -116,7 +116,11 @@ class MainApplication(tk.Frame):
         
     def pause_game(self, event):
         # Set the pause to the opposite of it's current value
-        self.pause = not pause
+        if self.pause:
+            self.pause = False
+        else:
+            self.pause = True
+
     
     def reset_game(self, event):
         # Reset game and turn count and update the game 
@@ -135,7 +139,7 @@ class MainApplication(tk.Frame):
                 self.update_players(finished=True)
                 return
 
-        self.after(game_speed, self.update)
+        self.after(self.game_speed, self.update)
 
     def update_players(self, finished=False):
         #TODO do something with finished
@@ -145,28 +149,40 @@ class MainApplication(tk.Frame):
         # Update every player frame
         for player, coin_label, card_labels, action_text in zip(self.game.players, self.coin_labels, self.player_cards, self.action_texts):
             if i == agent.identifier:
-                action_text.insert(tk.END, "Player's turn\nChosen action: ")
+                action_text.insert(tk.END, "Player's turn\n")
             else:
                 action_text.delete(1.0, tk.END)
 
             # Update the cards with the dead cards
-            i = 0
+            j = 0
             for card in player.cards:
-                card_labels[i].config(image=self.load_image(self.card_image_path(card.influence), size=self.card_size))
-                i += 1
-            if i < 2:
+                card_labels[j].config(image=self.load_image(self.card_image_path(card.influence), size=self.card_size))
+                j += 1
+            if j < 2:
                 for card in player.dead_cards:
-                    card_labels[i].config(image=self.load_image(self.card_image_path(card.influence, dead=True), size=self.card_size))
-                    i += 1
+                    card_labels[j].config(image=self.load_image(self.card_image_path(card.influence, dead=True), size=self.card_size))
+                    j += 1
 
             coin_label.config(text=player.coins)
             
             i += 1
-        action = self.game.choose_action(agent)
-        self.action_texts[agent.identifier].insert(tk.END, action)
+        action_seq, bluff_seq = self.game.choose_action(agent)
+        for action_info in action_seq:
+            print(action_info.action_string())
+            self.action_texts[action_info.agent.identifier].insert(tk.END, action_info.action_string())
+            if action_info.target is not None:
+                print(action_info.target_string())
+                self.action_texts[action_info.target.identifier].insert(tk.END, action_info.target_string())
 
-
-        
+            bluff_info = [x for x in bluff_seq if x.action == action_info.action]
+            if len(bluff_info) > 0:
+                bluff_info = bluff_info[0]
+                print(bluff_info.agent_string())
+                print(bluff_info.target_string())
+                print(bluff_info.result_string())
+                self.action_texts[bluff_info.agent.identifier].insert(tk.END, bluff_info.agent_string())
+                self.action_texts[bluff_info.bluff_caller.identifier].insert(tk.END, bluff_info.target_string())
+                self.action_texts[bluff_info.bluff_caller.identifier].insert(tk.END, bluff_info.result_string())
 
 
 
@@ -180,22 +196,22 @@ class MainApplication(tk.Frame):
         self.img_ref.append(image)
         return image
         
-    def card_image_path(self, name, dead=False):
-        # Returns the path for the card name
+    def card_image_path(self, influence, dead=False):
+        # Returns the path for the card name"
         if dead:
-            path = "images/dead_"
+            path = "../images/dead_"
         else:
-            path = "images/"
+            path = "../images/"
 
-        if name is "ambassador":
+        if influence is Influence.Ambassador:
             return path+"ambassador.png"
-        elif name is "assassin":
+        elif influence is Influence.Assassin:
             return path+"assassin.jpg"
-        elif name is "captain":
+        elif influence is Influence.Captain:
             return path+"captain.jpg"
-        elif name is "countessa":
+        elif influence is Influence.Contessa:
             return path+"contessa.jpg"
-        elif name is "duke":
+        elif influence is Influence.Duke:
             return path+"duke.jpg"
 
         
@@ -204,7 +220,7 @@ if __name__ == "__main__":
     root.geometry('1600x900')
     root.update()
 
-    game = Coup(4)
+    game = Coup(3)
 
     MainApplication(root,  game).grid()
     root.mainloop()

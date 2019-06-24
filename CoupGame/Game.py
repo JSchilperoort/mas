@@ -16,10 +16,6 @@ def main(argv):
 		turn(game)
 		#game.remove_dead_players()
 
-
-
-
-
 def turn(game):
 
 	agent = game.get_next_agent()

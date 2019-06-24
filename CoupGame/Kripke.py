@@ -58,7 +58,7 @@ class KripkeModel:
 					if not world.does_not_have_card_in_any_world(player, opponent, card):
 						return False
 		return True
-
+ 
 
 class World:
 	def __init__(self, formulas, n_players, cards):

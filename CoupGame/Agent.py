@@ -26,6 +26,7 @@ class Agent:
 			card = self.cards.pop()
 			self.dead_cards.append(card)
 		except:
+			print("Failed removing card for agent:" + self.identifier)
 			pass
 		if len(self.cards) <= 0:
 			self.alive = False
@@ -45,13 +46,8 @@ class Agent:
 
 	def remove_coins(self, amount):
 		self.coins -= amount
-
-	def get_possible_actions(self, action_type):
-		actions = []
-		for card in self.cards:
-			action = card.get_action(action_type)
-			actions.append(action)
-		return actions
+		if self.coins < 0:
+			self.coins = 0
 
 	def has_card(self, influence):
 		if influence in self.cards:

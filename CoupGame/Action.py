@@ -1,26 +1,25 @@
-
+from Enums import Actions
 class Action():
-
-	def choose_action(self, action, agent, target):
-		if action == "tax":
+	def perform_action(self, action, agent, target=None):
+		if action == Actions.Tax:
 			self.tax(agent)
-		elif action == "forgein_aid":
+		elif action == Actions.Foreign_Aid:
 			self.forgein_aid(agent)
-		elif action == "assassinate":
+		elif action == Actions.Assasinate:
 			self.assassinate(agent, target)
-		elif action == "income":
+		elif action == Actions.Income:
 			self.income(agent)
-		elif action == "coup":
+		elif action == Actions.Coup:
 			self.coup(agent, target)
-		elif action == "steal":
+		elif action == Actions.Steal:
 			self.steal(agent, target)
-		elif action == "swap_influence":
+		elif action == Actions.Swap_Influence:
 			self.swap_influence()
-		elif action == "block_foreign_aid":
+		elif action == Actions.Swap_Influence:
 			self.block_foreign_aid()
-		elif action == "block_assassination":
+		elif action == Actions.Block_Assasinate:
 			self.block_assassination()
-		elif action == "block_steal":
+		elif action == Actions.Block_Steal:
 			self.block_steal()		
 				
 	def tax(self, agent):

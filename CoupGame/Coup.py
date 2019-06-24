@@ -96,11 +96,24 @@ class Coup:
 			if action_reactive is not None and action_reactive not in possible_actions_reactive:
 				possible_actions_reactive.append(action_reactive)	
 
-	
+		all_actions_active = self.all_actions_active.copy()
+		bluff_actions = []
+		for action in self.all_actions_active:
+			if action not in possible_actions_active:
+				bluff_actions.append(action)
+
+
+
+		agent.coins = 0
+		if agent.coins < 3 and Actions.Assasinate in bluff_actions:
+			bluff_actions.remove(Actions.Assasinate)
 		# Income cant be blocked 
 		# 25% chance to bluff
 		bluff = random.randint(0, 1)
-		
+		if len(bluff_actions) == 0:
+			# No bluff actions available so agent will not bluff
+			bluff = 1
+
 		if bluff > 0:
 			# Player will not bluff
 			action = random.choice(possible_actions_active)
@@ -148,6 +161,7 @@ class Coup:
 			
 						
 			elif action == Actions.Tax:
+				action_sequence.append(ActionSequence(action, agent, None))
 				for player in self.players:
 					if player.identifier != agent.identifier:
 						#self.model = KripkeModel(n_players, [Influence.Assassin, Influence.Contessa, Influence.Captain, Influence.Duke])
@@ -157,14 +171,11 @@ class Coup:
 						if call == True:
 							#player.remove_card()
 							self.remove_card_and_update_model(player)
-							action_sequence.append(ActionSequence(action, agent, None))
 							bluff_sequence.append(BluffSequence(action, agent, player, False, False))
 							self.actions.perform_action(action, agent)
 							#print("True")
-						else:
-							action_sequence.append(ActionSequence(action, agent, None))
-							continue
-
+							return action_sequence, bluff_sequence
+				self.actions.perform_action(action, agent)
 
 			elif action == Actions.Assasinate:
 
@@ -298,24 +309,14 @@ class Coup:
 		
 		else:
 			# Possibly bluff an action
-			all_actions_active = self.all_actions_active.copy()
-			bluff_actions = []
-			for action in self.all_actions_active:
-				if action not in possible_actions_active:
-					bluff_actions.append(action)
 
-
-
-			agent.coins = 0
-			if agent.coins < 3 and Actions.Assasinate in bluff_actions:
-				bluff_actions.remove(Actions.Assasinate)
 
 			action = random.choice(bluff_actions)
 
 
-
 			if action == Actions.Tax:
 				# Players bluffs that he has Duke
+				action_sequence.append(ActionSequence(action, agent, None))
 				for player in self.players:
 					if player.identifier != agent.identifier:
 						#self.model = KripkeModel(n_players, [Influence.Assassin, Influence.Contessa, Influence.Captain, Influence.Duke])
@@ -325,15 +326,11 @@ class Coup:
 							# Caller knows that agent doesn't have duke
 							#player.remove_card()
 							self.remove_card_and_update_model(agent)
-							action_sequence.append(ActionSequence(action, agent, None))
 							bluff_sequence.append(BluffSequence(action, agent, player, True, False))
 							#self.actions.perform_action(action, agent)
 							#print("True")
-						else:
-							# Caller doesn't know if agent has doesn't have duke
-							self.actions.perform_action(action, agent)
-							action_sequence.append(ActionSequence(action, agent, None))
-							continue
+							return action_sequence, bluff_sequence
+				self.actions.perform_action(action, agent)
 
 			elif action == Actions.Assasinate:
 
@@ -389,7 +386,7 @@ class Coup:
 						if rand_int == 2:
 							# Target rightfully calls bluff on assassin
 
-							bluff_sequence.append(BluffSequence(action, agent, target, False, False))
+							bluff_sequence.append(BluffSequence(action, agent, target, True, False))
 							self.remove_card_and_update_model(agent)
 							action_sequence.append(ActionSequence(action, agent, target))
 							#self.perform_action_and_update_model(action, agent, target)
@@ -443,7 +440,7 @@ class Coup:
 						if rand_int == 2:
 							# Target rightfully calls bluff on Captain
 
-							bluff_sequence.append(BluffSequence(action, agent, target, False, False))
+							bluff_sequence.append(BluffSequence(action, agent, target, True, False))
 							#target.remove_card()
 							self.remove_card_and_update_model(agent)
 							action_sequence.append(ActionSequence(action, agent, target))

@@ -156,8 +156,7 @@ class MainApplication(tk.Frame):
 
         action_seq, bluff_seq = self.game.choose_action(agent)
 
-        blocked = False
-        bluffed = False
+        perform_action = True
         for action_info in action_seq:
             action_counter += 1
             print(action_info.action_string(action_counter))
@@ -173,7 +172,7 @@ class MainApplication(tk.Frame):
                         action_counter -= 1
                     print(action_info.block_string(action_counter))
                     self.action_texts[action_info.target.identifier].insert(tk.END, action_info.block_string(action_counter))
-                    blocked = True
+                    perform_action = False
                 else:
                     if action_info.action is not Actions.Coup:
                         action_counter += 1
@@ -194,12 +193,12 @@ class MainApplication(tk.Frame):
                     self.action_texts[bluff_info.bluff_caller.identifier].insert(tk.END, bluff_info.result_string(action_counter))
                 if bluff_info.bluff and not bluff_info.belief:
                     # Bluff called correctly
-                    bluffed = False
-                    blocked = False
-                else:
-                    bluffed = True
+                    perform_action = False
+                elif bluff_info.bluff and bluff_info.belief:
+                     perform_action = False
 
-            if not blocked or not bluffed:
+
+            if perform_action:
                 action_counter += 1
                 print("{}. Player performs action\n".format(action_counter))
                 self.action_texts[action_info.agent.identifier].insert(tk.END, "{}. Player performs action\n".format(action_counter))

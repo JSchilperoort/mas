@@ -8,15 +8,15 @@ class BluffSequence:
 
     def agent_string(self, counter):
         if self.belief:
-            return "{}. Player believes the action is valid\n".format(counter)
+            return "{}. Player believes the action is valid.\n".format(counter)
         else:
-            return "{}. Players beliefs Player {} is bluffing\n".format(counter, self.agent.identifier+1)
+            return "{}. Player beliefs Player {} is bluffing.\n".format(counter, self.agent.identifier+1)
         
     def result_string(self, counter):
         if self.belief:
             return ""
         else:
             if self.bluff:
-                return "{}. Bluff call was correct so Player {} loses a card\n".format(counter, self.agent.identifier+1)       
+                return "{}. Bluff called correctly.\nPlayer {} loses a card.\n".format(counter, self.agent.identifier+1)       
             else:
-                return "{}. Player called the bluff wrongfully and lost a card\n".format(counter)
+                return "{}. Called the bluff wrongfully and lost a card.\n".format(counter)

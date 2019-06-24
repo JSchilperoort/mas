@@ -32,25 +32,16 @@ class KripkeModel:
 	# set the relations between the worlds in the model
 	def set_relations(self):
 		print("\nsetting relations...")
-		count = 0
 		for player in range(self.n_players):
 			for i_w, world1 in enumerate(self.worlds):
 				w1_cards = world1.get_cards(player, visible_cards=True)
 				# this loop can start after world i_w since all relations are reflexive
 				for world2 in self.worlds[i_w + 1:]:
-
 					w2_cards = world2.get_cards(player, visible_cards=True)
 					# if this player has the same cards in both worlds, add relation
 					if w1_cards == w2_cards:
-						count += 1
-						# print('before::')
-						# print(self.count_relations())
 						world1.set_relation(world2, player)
 						world2.set_relation(world1, player)
-						# print('after:::')
-						# print(self.count_relations())
-		print("Number of worlds: {0}".format(len(self.worlds)))
-		print("Number of relations: {0}".format(self.count_relations()))
 
 	# remove all relations between worlds
 	def remove_relations(self):
@@ -80,8 +71,22 @@ class KripkeModel:
 			if world.same_formulas(f):
 				return world
 
+	#  does 'player' believe that any opponent has card'
+	def has_belief(self, cards_player, card):
+		known_cards_in_game = sum([x == card for x in cards_player])
+		visible = self.worlds[0].visible_cards
+		cards_w0 = self.worlds[0].formulas
+		for i, h in enumerate(visible):
+			for j, card_visible in enumerate(h):
+				if card_visible and cards_w0[i][j] == card:
+					known_cards_in_game += 1
+		print("Number of {0}s in game: {1}".format(card, known_cards_in_game))
+		if known_cards_in_game > 1:
+			return False
+		return True
+
 	# in 'world', does 'player' know that 'opponent' has 'boolean' 'card'
-	def query(self, cards_player, player, opponent, boolean, card):
+	def has_knowledge(self, cards_player, player, opponent, boolean, card):
 		for world in self.worlds:
 			other_hand = world.get_cards(player, visible_cards=True)
 			if self.same_hand(cards_player, other_hand):
@@ -121,10 +126,6 @@ class World:
 		self.relations_player1 = [self]
 		self.relations_player2 = [self]
 
-		self.belief_relations_player0 = [self]
-		self.belief_relations_player1 = [self]
-		self.belief_relations_player2 = [self]
-
 		self.cards = cards  # all cards
 
 	# check whether the distribution of cards is possible (no more than three instances of each card)
@@ -142,14 +143,6 @@ class World:
 			self.relations_player1.append(world)
 		if player == 2:
 			self.relations_player2.append(world)
-
-	def set_belief_relation(self, world, player):
-		if player == 0:
-			self.belief_relations_player0.append(world)
-		if player == 1:
-			self.belief_relations_player1.append(world)
-		if player == 2:
-			self.belief_relations_player2.append(world)
 
 	# check if an opponent has a certain card in all worlds accessible from this world by the player
 	def has_card_in_all_worlds(self, player, opponent, card):
@@ -226,11 +219,6 @@ class World:
 		self.relations_player1 = [self]
 		self.relations_player2 = [self]
 
-	def remove_belief_relations(self):
-		self.belief_relations_player0 = [self]
-		self.belief_relations_player1 = [self]
-		self.belief_relations_player2 = [self]
-
 	def remove_relations_player(self, player):
 		if player == 0:
 			self.relations_player0 = []
@@ -238,14 +226,6 @@ class World:
 			self.relations_player1 = []
 		if player == 2:
 			self.relations_player2 = []
-
-	def remove_belief_relations_player(self, player):
-		if player == 0:
-			self.belief_relations_player0 = []
-		if player == 1:
-			self.belief_relations_player1 = []
-		if player == 2:
-			self.belief_relations_player2 = []
 
 	# count the number of relations from this world to itself and other worlds
 	def count_relations(self):
@@ -255,33 +235,37 @@ class World:
 		count += len(self.relations_player2)
 		return count
 
-	def count_belief_relations(self):
-		count = 0
-		count += len(self.belief_relations_player0)
-		count += len(self.belief_relations_player1)
-		count += len(self.belief_relations_player2)
-		return count
-
 
 def main():
 	cards = ['assassin', 'countessa', 'captain', 'duke']
 	# n_players = 3
 	model = KripkeModel(3, cards=cards)
-	model.flip_card(1, 'assassin')
-	model.flip_card(1, 'assassin')
-	model.flip_card(2, 'countessa')
+	model.flip_card(1, 'duke')
+	print("Number of worlds: {0}".format(len(model.worlds)))
+	print("Number of relations: {0}".format(model.count_relations()))
 
-	other_card = 'duke'
-	own_hand = ['assassin', 'duke']
+	model.flip_card(1, 'assassin')
+	print("Number of worlds: {0}".format(len(model.worlds)))
+	print("Number of relations: {0}".format(model.count_relations()))
+
+
+
+	other_card = 'assassin'
+	own_hand = ['duke']
 	player = 0
-	other_player = 1
+	other_player = 2
 
-	if model.query(own_hand, player, other_player, True, other_card):
+	if model.has_belief(own_hand, other_card):
+		print("Player {0} believes that any other player has card {1}".format(player, other_card))
+	else:
+		print("Player {0} does not believe that any other player has card {1}".format(player, other_card))
+
+	if model.has_knowledge(own_hand, player, other_player, True, other_card):
 		print("Player {0} knows that player {1} has card {2}".format(player, other_player, other_card))
 	else:
 		print("Player {0} does not know whether player {1} has card {2}".format(player, other_player, other_card))
 
-	if model.query(own_hand, player,  other_player, False, other_card):
+	if model.has_knowledge(own_hand, player,  other_player, False, other_card):
 		print("Player {0} knows that player {1} does not have card {2}".format(player, other_player, other_card))
 	else:
 		print("Player {0} does not know whether player {1} does not have card {2}".format(player, other_player, other_card))

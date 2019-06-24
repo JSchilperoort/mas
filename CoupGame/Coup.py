@@ -16,14 +16,12 @@ class Coup:
 		self.turn_counter = 0
 		self.deck = []
 		self.make_deck()
-		#self.deck = ["ambassador", "ambassador", "ambassador", "assassin", "assassin","assassin", "captain", "captain","captain", "countessa","countessa","countessa", "duke", "duke", "duke"]
 		self.set_players()
 		self.all_actions_active = [Actions.Tax, Actions.Steal, Actions.Assasinate, Actions.Income, Actions.Foreign_Aid]
 		self.all_actions_reactive = [Actions.Block_Assasinate, Actions.Block_Foreign_Aid, Actions.Block_Steal]
 		self.actions = Action()
 		self.finished = False
 		self.model = KripkeModel(n_players, [Influence.Assassin, Influence.Contessa, Influence.Captain, Influence.Duke])
-	#	self.model = KripkeModel(n, ['assassin', 'countessa', 'captain', 'duke'])
 
 	def deal_card(self):
 		if not self.deck:
@@ -57,13 +55,6 @@ class Coup:
 		else:
 			self.actions.perform_action(action, agent, target)	
 		
-
-	"""
-	def get_influencecards(self, agent):
-		all_
-		alive_cards = agent.cards 
-		dead_cards = agent.dead_cards 
-	"""
 						
 	def choose_action(self, agent):
 		action_sequence = []
@@ -151,32 +142,28 @@ class Coup:
 						# Wrongly called bluff
 						action_sequence.append(ActionSequence(action, agent, caller, Actions.Block_Foreign_Aid))
 						bluff_sequence.append(BluffSequence(Actions.Block_Foreign_Aid, caller, agent, False, False))
-						agent.remove_card()
+						self.remove_card_and_update_model(agent)
+						#agent.remove_card()
 					else:
 						# Correctly called bluff on target
 						bluff_sequence.append(BluffSequence(Actions.Block_Foreign_Aid, caller, agent, True, False))
-						caller.remove_card()
+						#caller.remove_card()
+						self.remove_card_and_update_model(caller)
 						action_sequence.append(ActionSequence(action, agent, caller, Actions.Block_Foreign_Aid))
 						self.actions.perform_action(action, agent)
 			
 						
 			elif action == Actions.Tax:
-				#print("Coins before tax:" +  str(agent.coins))
 				action_sequence.append(ActionSequence(action, agent, None))
 				for player in self.players:
 					if player.identifier != agent.identifier:
-						#self.model = KripkeModel(n_players, [Influence.Assassin, Influence.Contessa, Influence.Captain, Influence.Duke])
-						
-						#cards = [x.influence for x in player.cards]
 						call = self.model.has_knowledge(cards, player.identifier, agent.identifier, True, Influence.Duke)
 						if call == True:
-							#player.remove_card()
 							self.remove_card_and_update_model(player)
 							bluff_sequence.append(BluffSequence(action, agent, player, False, False))
 							self.actions.perform_action(action, agent)
-							#print("True")
 							return action_sequence, bluff_sequence
-				#print("Coins after tax:" +  str(agent.coins))
+
 				self.actions.perform_action(action, agent)
 
 			elif action == Actions.Assasinate:
@@ -184,14 +171,7 @@ class Coup:
 				target = self.get_random_target(agent)
 				if target.has_card(Influence.Contessa):
 					# target calls block with countessa
-					"""
-					if random.randint(0, 3) == 0:
-						# agent wrongfully calls bluff
-						bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, False, False))
-						agent.remove_card()
 
-					"""
-					#cards = [x.influence for x in agent.cards]
 					call = self.model.has_knowledge(cards, agent.identifier, target.identifier, True, Influence.Contessa)
 					if call == True:
 						# Agent knows that target has a contessa
@@ -199,15 +179,21 @@ class Coup:
 
 					else:
 						# Agent doesn't know that the target has a contessa
-						# TODO: HERE WE HAVE TO ADD BELIEF TO MAKE THE GAME BETTER
-						bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, False, False))
-						self.remove_card_and_update_model(agent)
+						belief = self.model.has_belief(cards, Influence.Contessa)
+						if belief == True:
+							bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, False, True))
+							agent.remove_coins(3)
+							# Agent beliefs that the target has a Countessa
+							#pass
+						else:
+							# Agent doesn't believe that the target has a Countessa
+							bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, False, False))
+							self.remove_card_and_update_model(agent)
 					
 					action_sequence.append((ActionSequence(action, agent, target, Actions.Block_Assasinate)))
+
 				else:
 					# Target cant't block card: has to choose something else to do
-
-
 					call = self.model.has_knowledge(cards, target.identifier, agent.identifier, True, Influence.Assassin)
 					# Target checks if he knows that agent has an Assassin
 					if call == True:
@@ -238,12 +224,9 @@ class Coup:
 
 						if rand_int == 2:
 							# Target wrongly calls bluff on assassin
-
 							bluff_sequence.append(BluffSequence(action, agent, target, False, False))
-							#target.remove_card()
 							self.remove_card_and_update_model(target)
 							action_sequence.append(ActionSequence(action, agent, target))
-						#	self.actions.perform_action(action, agent, target)
 							self.perform_action_and_update_model(action, agent, target)
 
 
@@ -259,12 +242,20 @@ class Coup:
 						bluff_sequence.append(BluffSequence(Actions.Block_Steal, target, agent, False, True))
 
 					else:
+
 						# Agent doesn't know that the target has a captain
-						# TODO: HERE WE HAVE TO ADD BELIEF TO MAKE THE GAME BETTER
-						bluff_sequence.append(BluffSequence(Actions.Block_Steal, target, agent, False, False))
-						self.remove_card_and_update_model(agent)
+						belief = self.model.has_belief(cards, Influence.Captain)
+						if belief == True:
+							# Agent beliefs that the target has a Captain
+							bluff_sequence.append(BluffSequence(Actions.Block_Steal, target, agent, False, True))
+							
+						else:
+							# Agent doesn't believe that the target has a Captain
+							bluff_sequence.append(BluffSequence(Actions.Block_Steal, target, agent, False, False))
+							self.remove_card_and_update_model(agent)
 					
 					action_sequence.append((ActionSequence(action, agent, target, Actions.Block_Steal)))
+
 				else:
 
 					call = self.model.has_knowledge(cards, target.identifier, agent.identifier, True, Influence.Captain)
@@ -296,12 +287,9 @@ class Coup:
 
 						if rand_int == 2:
 							# Target wrongly calls bluff on Captain
-
 							bluff_sequence.append(BluffSequence(action, agent, target, False, False))
-							#target.remove_card()
 							self.remove_card_and_update_model(target)
 							action_sequence.append(ActionSequence(action, agent, target))
-						#	self.actions.perform_action(action, agent, target)
 							self.perform_action_and_update_model(action, agent, target)
 						
 
@@ -312,7 +300,6 @@ class Coup:
 		else:
 			# Possibly bluff an action
 
-
 			action = random.choice(bluff_actions)
 
 
@@ -321,34 +308,27 @@ class Coup:
 				action_sequence.append(ActionSequence(action, agent, None))
 				for player in self.players:
 					if player.identifier != agent.identifier:
-						#self.model = KripkeModel(n_players, [Influence.Assassin, Influence.Contessa, Influence.Captain, Influence.Duke])
-						#cards = [x.influence for x in player.cards]
 						call = self.model.has_knowledge(cards, player.identifier, agent.identifier, False, Influence.Duke)
 						if call == True:
 							# Caller knows that agent doesn't have duke
-							#player.remove_card()
 							self.remove_card_and_update_model(agent)
 							bluff_sequence.append(BluffSequence(action, agent, player, True, False))
-							#self.actions.perform_action(action, agent)
-							#print("True")
 							return action_sequence, bluff_sequence
+
 				self.actions.perform_action(action, agent)
 
 			elif action == Actions.Assasinate:
 
 				target = self.get_random_target(agent)
 				if target.has_card(Influence.Contessa):
-					# target calls block with countessa
+					# target calls block with contessa
 
-					#cards = [x.influence for x in agent.cards]
 					call = self.model.has_knowledge(cards, agent.identifier, target.identifier, True, Influence.Contessa)
 					if call == True:
 						# Agent knows that target has a contessa
 						bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, False, True))
 
 					else:
-						# Agent doesn't know that the target has a contessa
-						# TODO: HERE WE HAVE TO ADD BELIEF TO MAKE THE GAME BETTER
 						bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, False, False))
 						self.remove_card_and_update_model(agent)
 					
@@ -391,7 +371,6 @@ class Coup:
 							bluff_sequence.append(BluffSequence(action, agent, target, True, False))
 							self.remove_card_and_update_model(agent)
 							action_sequence.append(ActionSequence(action, agent, target))
-							#self.perform_action_and_update_model(action, agent, target)
 
 			elif action == Actions.Steal:
 
@@ -404,8 +383,6 @@ class Coup:
 						bluff_sequence.append(BluffSequence(Actions.Block_Steal, target, agent, False, True))
 
 					else:
-						# Agent doesn't know that the target has a captain
-						# TODO: HERE WE HAVE TO ADD BELIEF TO MAKE THE GAME BETTER
 						bluff_sequence.append(BluffSequence(Actions.Block_Steal, target, agent, False, False))
 						self.remove_card_and_update_model(agent)
 					
@@ -433,21 +410,15 @@ class Coup:
 							else:
 								# Agent doesn't know that target has Captain: rightfully calls the bluff
 								bluff_sequence.append(BluffSequence(Actions.Block_Steal, target, agent, True, False))
-								#target.remove_card()
 								self.remove_card_and_update_model(target)
 								action_sequence.append(ActionSequence(action, agent, target, Actions.Block_Steal))
-								#self.actions.perform_action(action, agent, target)		
 								self.perform_action_and_update_model(action, agent, target)		
 
 						if rand_int == 2:
 							# Target rightfully calls bluff on Captain
-
 							bluff_sequence.append(BluffSequence(action, agent, target, True, False))
-							#target.remove_card()
 							self.remove_card_and_update_model(agent)
 							action_sequence.append(ActionSequence(action, agent, target))
-						#	self.actions.perform_action(action, agent, target)
-						#	self.perform_action_and_update_model(action, agent, target)
 
 
 		print("Agent {} chose action {} with action_seq len {}and bluff_seq len {}".format(agent.identifier, action, len(action_sequence), len(bluff_sequence)))
@@ -455,7 +426,7 @@ class Coup:
 
 
 	def get_next_agent(self):
-		#print(self.turn_counter)
+
 		inf = 1
 		while inf == 1:
 			if self.turn_counter >= self.n_players:
@@ -469,17 +440,13 @@ class Coup:
 
 	def get_random_target(self, agent):
 		target_ids = []
-	#	target_ids_alive = []
+
 		for i in range(self.n_players):
 			if i != agent.get_id() and self.players[i].is_alive() == True:
 				target_ids.append(i)
 
-	#	for target_id in target_ids:
-	#		if self.players[target_id].is_alive() == True:
-	#			target_ids_alive.append(target_id)
 		target_id = random.choice(target_ids)
 		target = self.players[target_id]
-		#target = random.choice(self.players)
 
 		return target
 
@@ -494,22 +461,6 @@ class Coup:
 					winner_id = agent.get_id()
 			print("player {0} won the game!".format(winner_id))
 			self.finished = True
-
-
-	"""
-	def remove_dead_players(self):
-		to_remove = list()
-		for agent in self.players:
-			if not agent.alive:
-				to_remove.append(agent)
-		self.players = [x for x in self.players if x not in to_remove]
-		self.n_players = len(self.players)
-		for agent in to_remove:
-			print("-- player {0} was killed".format(agent.identifier))
-		if self.n_players <= 1:
-			print("player {0} won the game!".format(self.players[0].identifier))
-			self.finished = True
-	"""
 
 	def get_players(self):
 		return self.players

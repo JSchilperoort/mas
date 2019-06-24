@@ -44,6 +44,7 @@ class Action():
 		return card
 
 	def steal(self, agent, target):
+
 		if target.get_coins() == 0:
 			agent.add_coins(0)
 			target.remove_coins(0)

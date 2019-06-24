@@ -50,7 +50,7 @@ class Coup:
 		card = player.remove_card()
 		self.model.flip_card(player.identifier, card.influence)
 
-	def perform_action_and_update_model(self, action, agent, target):
+	def perform_action_and_update_model(self, action, agent, target=None):
 		if action == Actions.Assasinate or action == Actions.Coup:
 			card = self.actions.perform_action(action, agent, target)	
 			self.model.flip_card(target.identifier, card.influence)
@@ -103,13 +103,11 @@ class Coup:
 				bluff_actions.append(action)
 
 
-
-		agent.coins = 0
 		if agent.coins < 3 and Actions.Assasinate in bluff_actions:
 			bluff_actions.remove(Actions.Assasinate)
 		# Income cant be blocked 
 		# 25% chance to bluff
-		bluff = random.randint(0, 1)
+		bluff = random.randint(0, 4)
 		if len(bluff_actions) == 0:
 			# No bluff actions available so agent will not bluff
 			bluff = 1
@@ -119,8 +117,10 @@ class Coup:
 			action = random.choice(possible_actions_active)
 			#action = Actions.Tax
 			if action == Actions.Income:
+				#print("Coins before income:" +  str(agent.coins))
 				action_sequence.append(ActionSequence(action, agent, None))
 				self.actions.perform_action(action, agent)
+				#print("Coins after income:" +  str(agent.coins))
 
 			elif action == Actions.Foreign_Aid:
 				# Random target will bluff having duke if he doesn't have it
@@ -161,6 +161,7 @@ class Coup:
 			
 						
 			elif action == Actions.Tax:
+				#print("Coins before tax:" +  str(agent.coins))
 				action_sequence.append(ActionSequence(action, agent, None))
 				for player in self.players:
 					if player.identifier != agent.identifier:
@@ -175,6 +176,7 @@ class Coup:
 							self.actions.perform_action(action, agent)
 							#print("True")
 							return action_sequence, bluff_sequence
+				#print("Coins after tax:" +  str(agent.coins))
 				self.actions.perform_action(action, agent)
 
 			elif action == Actions.Assasinate:

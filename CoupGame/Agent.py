@@ -44,7 +44,10 @@ class Agent:
 		return self.coins
 
 	def add_coins(self, amount):
+
+		print("Before", self.coins)
 		self.coins += amount
+		print("After", self.coins)
 
 	def remove_coins(self, amount):
 		self.coins -= amount

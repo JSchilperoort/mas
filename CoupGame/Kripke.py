@@ -60,10 +60,11 @@ class KripkeModel:
 		count = 0
 		for world in self.worlds:
 			count += world.count_relations()
-
-			#print(count)
-		#print(" Added relations:", count)
 		return count
+
+	# count and return the number of worlds
+	def count_worlds(self):
+		return len(self.worlds)
 
 	# return the world with formulas 'f'
 	def get_world(self, f):

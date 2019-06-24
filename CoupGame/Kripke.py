@@ -1,6 +1,6 @@
 # from tqdm import tqdm
 from itertools import product, combinations_with_replacement
-
+from copy import deepcopy
 
 class KripkeModel:
 	def __init__(self, n_players, cards):
@@ -32,17 +32,23 @@ class KripkeModel:
 	# set the relations between the worlds in the model
 	def set_relations(self):
 		print("\nsetting relations...")
+		count = 0
 		for player in range(self.n_players):
-			for i_w, world in enumerate(self.worlds):
-				w1_cards = world.get_cards(player, visible_cards=True)
+			for i_w, world1 in enumerate(self.worlds):
+				w1_cards = world1.get_cards(player, visible_cards=True)
 				# this loop can start after world i_w since all relations are reflexive
 				for world2 in self.worlds[i_w + 1:]:
+
 					w2_cards = world2.get_cards(player, visible_cards=True)
 					# if this player has the same cards in both worlds, add relation
 					if w1_cards == w2_cards:
-						# set relation in both directions
-						world.set_relation(world2, player)
-						world2.set_relation(world, player)
+						count += 1
+						# print('before::')
+						# print(self.count_relations())
+						world1.set_relation(world2, player)
+						world2.set_relation(world1, player)
+						# print('after:::')
+						# print(self.count_relations())
 		print("Number of worlds: {0}".format(len(self.worlds)))
 		print("Number of relations: {0}".format(self.count_relations()))
 
@@ -51,11 +57,21 @@ class KripkeModel:
 		for world in self.worlds:
 			world.remove_relations()
 
+	# remove all relations between worlds
+	def remove_relations_dead_players(self):
+		for player in range(self.n_players):
+			for world in self.worlds:
+				if len(world.get_cards(player, visible_cards=False)) == 0:
+					world.remove_relations_player(player)
+
 	# count and return the number of relations in the model
 	def count_relations(self):
 		count = 0
 		for world in self.worlds:
 			count += world.count_relations()
+
+			#print(count)
+		#print(" Added relations:", count)
 		return count
 
 	# return the world with formulas 'f'
@@ -92,7 +108,9 @@ class KripkeModel:
 				new_worlds.append(world)
 		self.worlds = new_worlds
 		self.remove_relations()
+		print(self.count_relations())
 		self.set_relations()
+		self.remove_relations_dead_players()
 
 
 class World:
@@ -100,8 +118,9 @@ class World:
 		self.formulas = formulas  # distribution of cards
 		self.visible_cards = visible_cards  # boolean list of whether certain cards are flipped
 		self.n_players = n_players  # number of players in the game
-		self.relations = [[self]] * n_players  # initialize world with only reflexive relations to itself
-		self.belief_relations = [[self]] * n_players  # initialize world with only reflexive beliefs
+		self.relations_player0 = [self]
+		self.relations_player1 = [self]
+
 		self.cards = cards  # all cards
 
 	# check whether the distribution of cards is possible (no more than three instances of each card)
@@ -113,14 +132,22 @@ class World:
 
 	# set a relation between two worlds (exists as a list of pointers from this world to those worlds)
 	def set_relation(self, world, player):
-		self.relations[player].append(world)
+		# print()
+		# print(self.relations_player0)
+		# print(self.relations_player1)
+		if player == 0:
+			self.relations_player0.append(world)
+		if player == 1:
+			self.relations_player1.append(world)
+		#
+		# print(self.relations_player0)
+		# print(self.relations_player1)
 
 	# check if an opponent has a certain card in all worlds accessible from this world by the player
 	def has_card_in_all_worlds(self, player, opponent, card):
 		for relation in self.relations[player]:
 			# there exists an accessible world in which the opponent does not have 'card'
 			if not card in relation.get_cards(opponent, visible_cards=False):
-				# TODO need to check for 'visible'
 				return False
 		return True
 
@@ -169,27 +196,38 @@ class World:
 	def remove_relations(self):
 		self.relations = [[self]] * self.n_players
 
+	def remove_relations_player(self, player):
+		self.relations[player] = []
+
 	# count the number of relations from this world to itself and other worlds
 	def count_relations(self):
 		count = 0
-		for relation in self.relations:
-			count += len(relation)
+		count += len(self.relations_player0)
+		count += len(self.relations_player1)
+
 		return count
 
 
 def main():
 	cards = ['assassin', 'countessa', 'captain', 'duke']
-	model = KripkeModel(n_players=3, cards=cards)
-	model.flip_card(2, 'captain')
-	model.flip_card(2, 'captain')
+	model = KripkeModel(n_players=2, cards=cards)
 	model.flip_card(1, 'assassin')
 	model.flip_card(1, 'assassin')
-	model.flip_card(0, 'captain')
 
-	other_card = 'assassin'
-	own_hand = ['assassin', 'assassin']
-	player = 1
-	other_player = 0
+	other_card = 'countessa'
+	own_hand = ['countessa', 'duke']
+	player = 0
+	other_player = 1
+	worlds = model.worlds
+
+	# for world in worlds:
+	# 	this_cards = world.formulas
+	# 	print()
+	# 	print(this_cards)
+	# 	for i, w in enumerate(world.relations_player0):
+	# 		print(w.formulas)
+
+
 	if model.query(own_hand, player, other_player, True, other_card):
 		print("Player {0} knows that player {1} has card {2}".format(player, other_player, other_card))
 	else:

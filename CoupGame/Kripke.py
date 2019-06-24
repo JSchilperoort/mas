@@ -121,6 +121,10 @@ class World:
 		self.relations_player1 = [self]
 		self.relations_player2 = [self]
 
+		self.belief_relations_player0 = [self]
+		self.belief_relations_player1 = [self]
+		self.belief_relations_player2 = [self]
+
 		self.cards = cards  # all cards
 
 	# check whether the distribution of cards is possible (no more than three instances of each card)
@@ -139,6 +143,13 @@ class World:
 		if player == 2:
 			self.relations_player2.append(world)
 
+	def set_belief_relation(self, world, player):
+		if player == 0:
+			self.belief_relations_player0.append(world)
+		if player == 1:
+			self.belief_relations_player1.append(world)
+		if player == 2:
+			self.belief_relations_player2.append(world)
 
 	# check if an opponent has a certain card in all worlds accessible from this world by the player
 	def has_card_in_all_worlds(self, player, opponent, card):
@@ -163,15 +174,15 @@ class World:
 	def does_not_have_card_in_any_world(self, player, opponent, card):
 		if player == 0:
 			for relation in self.relations_player0:
-				if card in relation.get_cards(opponent, visible_cards=True):
+				if card in relation.get_cards(opponent, visible_cards=False):
 					return False
 		if player == 1:
 			for relation in self.relations_player1:
-				if card in relation.get_cards(opponent, visible_cards=True):
+				if card in relation.get_cards(opponent, visible_cards=False):
 					return False
 		if player == 2:
 			for relation in self.relations_player2:
-				if card in relation.get_cards(opponent, visible_cards=True):
+				if card in relation.get_cards(opponent, visible_cards=False):
 					return False
 		return True
 
@@ -215,13 +226,26 @@ class World:
 		self.relations_player1 = [self]
 		self.relations_player2 = [self]
 
+	def remove_belief_relations(self):
+		self.belief_relations_player0 = [self]
+		self.belief_relations_player1 = [self]
+		self.belief_relations_player2 = [self]
+
 	def remove_relations_player(self, player):
 		if player == 0:
 			self.relations_player0 = []
 		if player == 1:
 			self.relations_player1 = []
 		if player == 2:
-			self.relations_player1 = []
+			self.relations_player2 = []
+
+	def remove_belief_relations_player(self, player):
+		if player == 0:
+			self.belief_relations_player0 = []
+		if player == 1:
+			self.belief_relations_player1 = []
+		if player == 2:
+			self.belief_relations_player2 = []
 
 	# count the number of relations from this world to itself and other worlds
 	def count_relations(self):
@@ -229,6 +253,13 @@ class World:
 		count += len(self.relations_player0)
 		count += len(self.relations_player1)
 		count += len(self.relations_player2)
+		return count
+
+	def count_belief_relations(self):
+		count = 0
+		count += len(self.belief_relations_player0)
+		count += len(self.belief_relations_player1)
+		count += len(self.belief_relations_player2)
 		return count
 
 
@@ -240,11 +271,10 @@ def main():
 	model.flip_card(1, 'assassin')
 	model.flip_card(2, 'countessa')
 
-
-	other_card = 'assassin'
+	other_card = 'duke'
 	own_hand = ['assassin', 'duke']
 	player = 0
-	other_player = 2
+	other_player = 1
 
 	if model.query(own_hand, player, other_player, True, other_card):
 		print("Player {0} knows that player {1} has card {2}".format(player, other_player, other_card))

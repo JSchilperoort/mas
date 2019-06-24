@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <title>Multi-Agent Systems</title>
+
+  <!-- Bootstrap core CSS -->
+  <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Custom styles for this template -->
+  <link href="../css/simple-sidebar.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+  <div class="d-flex" id="wrapper">
+
+    <!-- Sidebar -->
+    <div class="bg-light border-right" id="sidebar-wrapper">
+      <div class="sidebar-heading">Navigation </div>
+      <div class="list-group list-group-flush">
+        <a href="../index.html" class="list-group-item list-group-item-action bg-light">Landing Page</a>
+        <a href="game.html" class="list-group-item list-group-item-action bg-light">Game Overview</a>
+        <a href="game_implementation.html" class="list-group-item list-group-item-action bg-light">Game Implementation</a>
+        <a href="visualization.html" class="list-group-item list-group-item-action bg-light">Visualization</a>
+        <a href="logic.html" class="list-group-item list-group-item-action bg-light">Logic</a>
+
+      </div>
+    </div>
+    <!-- /#sidebar-wrapper -->
+
+    <!-- Page Content -->
+    <div id="page-content-wrapper">
+
+
+      <div class="container-fluid">
+        <h1 class="mt-4">Game Implementation</h1>
+        <p>The starting state of the menu will appear collapsed on smaller screens, and will appear non-collapsed on larger screens. When toggled using the button below, the menu will change.</p>
+        <p>Make sure to keep all page content within the <code>#page-content-wrapper</code>. The top navbar is optional, and just for demonstration. Just create an element with the <code>#menu-toggle</code> ID which will toggle the menu when clicked.</p>
+
+        
+        <img src="../img/coup.jpg" alt="Coup Image" style="width:1000px;height:600px;">
+
+        <p>The starting state of the menu will appear collapsed on smaller screens, and will appear non-collapsed on larger screens. When toggled using the button below, the menu will change.</p>
+        <p>Make sure to keep all page content within the <code>#page-content-wrapper</code>. The top navbar is optional, and just for demonstration. Just create an element with the <code>#menu-toggle</code> ID which will toggle the menu when clicked.</p>
+      </div>
+
+      <div class="container-fluid">
+        <h1 class="mt-4">Game Overview</h1>
+
+        Coup is a cardgame that revolves around strategy and bluffing. The game is played with 2-6 players and there are five unique cards each with their own abilities, namely the captain, duke, ambassador, assassin and countessa. There are three copies of each card in the deck, and each player starts with two random cards and two coins. The objective of the game is to be the only player with cards left. 
+        A round is played as follows: each players chooses one of the possible actions. The possible actions are: <br><br>
+
+        <ul>
+          <li>Income: take one coin.</li>
+          <li>Foreign Aid: take two coins, can be blocked with a duke.</li>
+          <li>Coup: spend seven coins to make one chosen player give up one of their cards.</li>
+          <li>Taxes: take three coins (duke ability).</li>
+          <li>Assassinate: spend three coins to make one chosen player give up one of their cards (assassin ability).</li>
+          <li>Steal: take two coins from another player. Can be blocked with a captain or ambassador (captain ability)</li>
+          <li> Swap Cards: draw two cards from the deck and add them to your hand, choose two out of four and put the remaining two back in the deck (ambassador ability).</li>
+        </ul>
+
+        Furthermore, the countessa has no active ability but can instead be used to block an assassination attempt. A player can choose any action (provided they have enough coins for it), even though they may not actually have the corresponding card. Other players can then choose to believe the player or call their bluff. When a wrongful bluff is called, the player calling the bluff loses one card. 
+
+      </div>
+
+
+    </div>
+    <!-- /#page-content-wrapper -->
+
+  </div>
+  <!-- /#wrapper -->
+
+  <!-- Bootstrap core JavaScript -->
+  <script src="vendor/jquery/jquery.min.js"></script>
+  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Menu Toggle Script -->
+  <script>
+    $("#menu-toggle").click(function(e) {
+      e.preventDefault();
+      $("#wrapper").toggleClass("toggled");
+    });
+  </script>
+
+</body>
+
+</html>

@@ -19,7 +19,7 @@ class MainApplication(tk.Frame):
         self.pause = False
         self.turn_count = 1
         self.card_size = (181, 250)
-        self.game_speed = 100
+        self.game_speed = 1000
         # Width for player frames
         self.player_w = self.root.winfo_width() / self.game.n_players
         

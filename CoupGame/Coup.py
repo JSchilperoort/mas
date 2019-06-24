@@ -18,7 +18,7 @@ class Coup:
 		self.make_deck()
 		#self.deck = ["ambassador", "ambassador", "ambassador", "assassin", "assassin","assassin", "captain", "captain","captain", "countessa","countessa","countessa", "duke", "duke", "duke"]
 		self.set_players()
-		self.all_actions_active = [Actions.Tax, Actions.Steal, Actions.Assasinate, Actions.Income, Actions.Tax, Actions.Foreign_Aid]
+		self.all_actions_active = [Actions.Tax, Actions.Steal, Actions.Assasinate, Actions.Income, Actions.Foreign_Aid]
 		self.all_actions_reactive = [Actions.Block_Assasinate, Actions.Block_Foreign_Aid, Actions.Block_Steal]
 		self.actions = Action()
 		self.finished = False
@@ -82,7 +82,7 @@ class Coup:
 		# Determine the possible active and reactive actions for the agent
 		possible_actions_active = []
 		possible_actions_active.append(Actions.Income)
-		#possible_actions_active.append(Actions.Foreign_Aid)
+		possible_actions_active.append(Actions.Foreign_Aid)
 		possible_actions_reactive = []
 		for card in agent.cards:
 			action_active = card.get_action_active()
@@ -99,7 +99,7 @@ class Coup:
 	
 		# Income cant be blocked 
 		# 25% chance to bluff
-		bluff = random.randint(0, 3)
+		bluff = random.randint(0, 1)
 		
 		if bluff > 0:
 			# Player will not bluff
@@ -153,7 +153,7 @@ class Coup:
 						#self.model = KripkeModel(n_players, [Influence.Assassin, Influence.Contessa, Influence.Captain, Influence.Duke])
 						
 						#cards = [x.influence for x in player.cards]
-						call = self.model.query(cards, player.identifier, agent.identifier, True, Influence.Duke)
+						call = self.model.has_knowledge(cards, player.identifier, agent.identifier, True, Influence.Duke)
 						if call == True:
 							#player.remove_card()
 							self.remove_card_and_update_model(player)
@@ -164,23 +164,6 @@ class Coup:
 						else:
 							action_sequence.append(ActionSequence(action, agent, None))
 							continue
-							#print("False")
-						#def query(self, cards_player, player, opponent, boolean, card):
-				"""
-				if random.randint(0, 3) == 0:
-					# Random player wrongfully called bluff
-
-
-					bluff_caller = self.get_random_target(agent)
-					bluff_caller.remove_card()
-					action_sequence.append(ActionSequence(action, agent, None))
-					bluff_sequence.append(BluffSequence(action, agent, bluff_caller, False, False))
-					self.actions.perform_action(action, agent)
-				else:
-					# No bluff was called
-					action_sequence.append(ActionSequence(action, agent, None))
-					self.actions.perform_action(action, agent)
-				"""
 
 
 			elif action == Actions.Assasinate:
@@ -196,7 +179,7 @@ class Coup:
 
 					"""
 					#cards = [x.influence for x in agent.cards]
-					call = self.model.query(cards, agent.identifier, target.identifier, True, Influence.Contessa)
+					call = self.model.has_knowledge(cards, agent.identifier, target.identifier, True, Influence.Contessa)
 					if call == True:
 						# Agent knows that target has a contessa
 						bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, False, True))
@@ -211,23 +194,8 @@ class Coup:
 				else:
 					# Target cant't block card: has to choose something else to do
 
-					"""
-					rand_int = random.randint(1, 3)
-					if   rand_int == 1:
-						# target bluffs that he has contessa
-						if random.randint(0, 3) > 1:
-							# Agent believes the bluff; loses coins and performs no action
-							agent.remove_coins(3)
-							action_sequence.append((ActionSequence(action, agent, target, Actions.Block_Assasinate)))
-							bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, True, True))
-						else:
-							# Correctly called bluff so remove card of target
-							bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, True, False))
-							target.remove_card()
-							action_sequence.append(ActionSequence(action, agent, target, Actions.Block_Assasinate))
-							self.actions.perform_action(action, agent, target)
-					"""	
-					call = self.model.query(cards, target.identifier, agent.identifier, True, Influence.Assassin)
+
+					call = self.model.has_knowledge(cards, target.identifier, agent.identifier, True, Influence.Assassin)
 					# Target checks if he knows that agent has an Assassin
 					if call == True:
 						# Target knows that agent has an assassin: let's the assassinate happen
@@ -239,7 +207,7 @@ class Coup:
 						rand_int = random.randint(1, 2)
 						if rand_int == 1:
 							# Target bluffs that he has contessa
-							call = self.model.query(cards, agent.identifier, target.identifier, True, Influence.Contessa)
+							call = self.model.has_knowledge(cards, agent.identifier, target.identifier, True, Influence.Contessa)
 							# Agent checks to see whether he knows that target has a Contessa
 							if call == True:
 								# Agent knows that target has Contessa: 
@@ -266,55 +234,13 @@ class Coup:
 							self.perform_action_and_update_model(action, agent, target)
 
 
-					"""
-					rand_int = random.randint(1, 3)
-					if rand_int == 1:
-						# Target bluffs that he has contessa
-						call = self.model.query(cards, agent.identifier, target.identifier, True, Influence.Contessa)
-						if call == True:
-							# Agent knows that target has a contessa: believes the bluff
-							agent.remove_coins(3)
-							action_sequence.append((ActionSequence(action, agent, target, Actions.Block_Assasinate)))
-							bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, True, True))
-						else:
-							# Agent doesn't know that target has contessa
-							# Correctly calls it
-							bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, True, False))
-							#target.remove_card()
-							self.remove_card_and_update_model(target)
-							action_sequence.append(ActionSequence(action, agent, target, Actions.Block_Assasinate))
-							self.actions.perform_action(action, agent, target)							
-
-					elif rand_int == 2:
-						# Target wrongly calls bluff on assinate
-
-						bluff_sequence.append(BluffSequence(action, agent, target, False, False))
-						target.remove_card()
-						action_sequence.append(ActionSequence(action, agent, target))
-						self.actions.perform_action(action, agent, target)
-
-					elif rand_int == 3:
-						# Call no bluff; let action through
-						action_sequence.append(ActionSequence(action, agent, target))
-						bluff_sequence.append(BluffSequence(action, agent, target, False, True))
-						self.actions.perform_action(action, agent, target)
-					"""
 
 			elif action == Actions.Steal:
-		#	elif action == Actions.Assasinate:
 
 				target = self.get_random_target(agent)
 				if target.has_card(Influence.Captain):
-					# target calls block with captain
-					"""
-					if random.randint(0, 3) == 0:
-						# agent wrongfully calls bluff
-						bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, False, False))
-						agent.remove_card()
 
-					"""
-					#cards = [x.influence for x in agent.cards]
-					call = self.model.query(cards, agent.identifier, target.identifier, True, Influence.Captain)
+					call = self.model.has_knowledge(cards, agent.identifier, target.identifier, True, Influence.Captain)
 					if call == True:
 						# Agent knows that target has a captain
 						bluff_sequence.append(BluffSequence(Actions.Block_Steal, target, agent, False, True))
@@ -327,25 +253,8 @@ class Coup:
 					
 					action_sequence.append((ActionSequence(action, agent, target, Actions.Block_Steal)))
 				else:
-					# Target cant't block card: has to choose something else to do
 
-					"""
-					rand_int = random.randint(1, 3)
-					if   rand_int == 1:
-						# target bluffs that he has contessa
-						if random.randint(0, 3) > 1:
-							# Agent believes the bluff; loses coins and performs no action
-							agent.remove_coins(3)
-							action_sequence.append((ActionSequence(action, agent, target, Actions.Block_Assasinate)))
-							bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, True, True))
-						else:
-							# Correctly called bluff so remove card of target
-							bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, True, False))
-							target.remove_card()
-							action_sequence.append(ActionSequence(action, agent, target, Actions.Block_Assasinate))
-							self.actions.perform_action(action, agent, target)
-					"""	
-					call = self.model.query(cards, target.identifier, agent.identifier, True, Influence.Captain)
+					call = self.model.has_knowledge(cards, target.identifier, agent.identifier, True, Influence.Captain)
 					# Target checks if he knows that agent has an Captain
 					if call == True:
 						# Target knows that agent has an assassin: let's the assassinate happen
@@ -357,7 +266,7 @@ class Coup:
 						rand_int = random.randint(1, 2)
 						if rand_int == 1:
 							# Target bluffs that he has captain
-							call = self.model.query(cards, agent.identifier, target.identifier, True, Influence.Captain)
+							call = self.model.has_knowledge(cards, agent.identifier, target.identifier, True, Influence.Captain)
 							# Agent checks to see whether he knows that target has a Contessa
 							if call == True:
 								# Agent knows that target has Captain: 
@@ -390,204 +299,161 @@ class Coup:
 		else:
 			# Possibly bluff an action
 			all_actions_active = self.all_actions_active.copy()
+			bluff_actions = []
+			for action in self.all_actions_active:
+				if action not in possible_actions_active:
+					bluff_actions.append(action)
+
+
+
 			agent.coins = 0
-			if agent.coins < 3:
-				all_actions_active.remove(Actions.Assasinate)
-			action = random.choice(all_actions_active)
+			if agent.coins < 3 and Actions.Assasinate in bluff_actions:
+				bluff_actions.remove(Actions.Assasinate)
 
-			if action in possible_actions_active:
-				valid_action = True
-			else:
-				valid_action = False
+			action = random.choice(bluff_actions)
 
-			if action == Actions.Income:
-				action_sequence.append(ActionSequence(action, agent, None))
-				self.actions.perform_action(action, agent)
 
-			elif action == Actions.Foreign_Aid:
-				# Random target will bluff having duke if he doesn't have it
-				if  random.randint(0, 3) == 0:
-					caller = self.get_random_target(agent)
-				else:
-					caller = None
-					for player in self.players:
-						if player.identifier == agent.identifier or not player.is_alive():
+
+			if action == Actions.Tax:
+				# Players bluffs that he has Duke
+				for player in self.players:
+					if player.identifier != agent.identifier:
+						#self.model = KripkeModel(n_players, [Influence.Assassin, Influence.Contessa, Influence.Captain, Influence.Duke])
+						#cards = [x.influence for x in player.cards]
+						call = self.model.has_knowledge(cards, player.identifier, agent.identifier, False, Influence.Duke)
+						if call == True:
+							# Caller knows that agent doesn't have duke
+							#player.remove_card()
+							self.remove_card_and_update_model(agent)
+							action_sequence.append(ActionSequence(action, agent, None))
+							bluff_sequence.append(BluffSequence(action, agent, player, True, False))
+							#self.actions.perform_action(action, agent)
+							#print("True")
+						else:
+							# Caller doesn't know if agent has doesn't have duke
+							self.actions.perform_action(action, agent)
+							action_sequence.append(ActionSequence(action, agent, None))
 							continue
-						if player.has_card(Influence.Duke):
-							caller = player
-							break
-							
-				if caller is None:
-					# No target can block
-						action_sequence.append(ActionSequence(action, agent, None))
-						self.actions.perform_action(action, agent)
-						return action_sequence, bluff_sequence
-
-				if  random.randint(0, 3) > 1:
-					# Agent believes target
-					action_sequence.append(ActionSequence(action, agent, caller, Actions.Block_Foreign_Aid))
-					bluff_sequence.append(BluffSequence(Actions.Block_Foreign_Aid, caller, agent, False, True))
-				else:
-					# Agent doesn't believe target
-					if caller.has_card(Influence.Duke):
-						# Wrongly called bluff
-						action_sequence.append(ActionSequence(action, agent, caller, Actions.Block_Foreign_Aid))
-						bluff_sequence.append(BluffSequence(Actions.Block_Foreign_Aid, caller, agent, False, False))
-						agent.remove_card()
-					else:
-						# Correctly called bluff on target
-						bluff_sequence.append(BluffSequence(Actions.Block_Foreign_Aid, caller, agent, True, False))
-						caller.remove_card()
-						action_sequence.append(ActionSequence(action, agent, caller, Actions.Block_Foreign_Aid))
-						self.actions.perform_action(action, agent)
-			
-			elif action == Actions.Tax:
-				action_sequence.append(ActionSequence(action, agent, None))
-				if random.randint(0, 3) == 0:
-					# Random player calls bluff
-					bluff_caller = self.get_random_target(agent)
-					if valid_action:
-						# Wrongly called bluff
-						bluff_caller.remove_card()
-						bluff_sequence.append(BluffSequence(action, agent, bluff_caller, False, False))
-						self.actions.perform_action(action, agent)
-					else:
-						# Called bluff correctly
-						agent.remove_card()
-						bluff_sequence.append(BluffSequence(action, agent, bluff_caller, True, False))
-					
-				else:
-					# No bluff was called
-					self.actions.perform_action(action, agent)
 
 			elif action == Actions.Assasinate:
+
 				target = self.get_random_target(agent)
 				if target.has_card(Influence.Contessa):
 					# target calls block with countessa
-					if random.randint(0, 3) == 0:
-						# agent wrongfully calls bluff
-						bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, False, False))
-						agent.remove_card()
-					# Agent doesn't calll bluff so action is blocked
-					else:
+
+					#cards = [x.influence for x in agent.cards]
+					call = self.model.has_knowledge(cards, agent.identifier, target.identifier, True, Influence.Contessa)
+					if call == True:
+						# Agent knows that target has a contessa
 						bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, False, True))
+
+					else:
+						# Agent doesn't know that the target has a contessa
+						# TODO: HERE WE HAVE TO ADD BELIEF TO MAKE THE GAME BETTER
+						bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, False, False))
+						self.remove_card_and_update_model(agent)
+					
 					action_sequence.append((ActionSequence(action, agent, target, Actions.Block_Assasinate)))
+
 				else:
-					# Target cant't block card
-					rand_int = random.randint(1, 3)
-					if   rand_int == 1:
-						# target bluffs that he has contessa
-						if random.randint(0, 3) > 1:
-							# Agent believes the bluff; loses coins and performs no action
-							agent.remove_coins(3)
-							action_sequence.append((ActionSequence(action, agent, target, Actions.Block_Assasinate)))
-							bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, True, True))
-						else:
-							# Correctly called bluff so remove card of target
-							bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, True, False))
-							target.remove_card()
-							action_sequence.append(ActionSequence(action, agent, target, Actions.Block_Assasinate))
-							self.actions.perform_action(action, agent, target)
-					elif rand_int == 2:
-							# Target calls bluff on action
-						if valid_action:
-							# Wrongly called bluff
-							target.remove_card()
-							bluff_sequence.append(BluffSequence(action, agent, target, False, False))
-							self.actions.perform_action(action, agent, target)
-						else:
-							# Called bluff correctly
-							agent.remove_card()
-							bluff_sequence.append(BluffSequence(action, agent, target, True, False))						
-		
-					elif rand_int == 3:
-						# Call no bluff; let action through
+					# Target doesn't have Contessa
+					call = self.model.has_knowledge(cards, target.identifier, agent.identifier, True, Influence.Assassin)
+					# Target checks if he knows that agent has an Assassin
+					if call == True:
+						# Target knows that agent has an assassin: let's the assassinate happen
 						action_sequence.append(ActionSequence(action, agent, target))
 						bluff_sequence.append(BluffSequence(action, agent, target, False, True))
 						self.actions.perform_action(action, agent, target)	
 
+					if call == False:
+						# Target doesn't know that agent has an assassin:
+						rand_int = random.randint(1, 2)
+						if rand_int == 1:
+							# Target bluffs that he has contessa
+							call = self.model.has_knowledge(cards, agent.identifier, target.identifier, True, Influence.Contessa)
+							# Agent checks to see whether he knows that target has a Contessa
+							if call == True:
+								# Agent knows that target has Contessa: 
+								agent.remove_coins(3)
+								action_sequence.append((ActionSequence(action, agent, target, Actions.Block_Assasinate)))
+								bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, True, True))
+							else:
+								# Agent doesn't know that target has Contessa: rightfully calls the bluff
+								bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, True, False))
+								#target.remove_card()
+								self.remove_card_and_update_model(target)
+								action_sequence.append(ActionSequence(action, agent, target, Actions.Block_Assasinate))
+								#self.actions.perform_action(action, agent, target)		
+								self.perform_action_and_update_model(action, agent, target)		
+
+						if rand_int == 2:
+							# Target rightfully calls bluff on assassin
+
+							bluff_sequence.append(BluffSequence(action, agent, target, False, False))
+							self.remove_card_and_update_model(agent)
+							action_sequence.append(ActionSequence(action, agent, target))
+							#self.perform_action_and_update_model(action, agent, target)
+
 			elif action == Actions.Steal:
+
 				target = self.get_random_target(agent)
 				if target.has_card(Influence.Captain):
-					# target calls block with Captain
-					if random.randint(0, 3) == 0:
-						# agent wrongfully calls bluff
-						bluff_sequence.append(BluffSequence(Actions.Block_Steal, target, agent, False, False))
-						agent.remove_card()
-					# Action is blocked
-					else:
+
+					call = self.model.has_knowledge(cards, agent.identifier, target.identifier, True, Influence.Captain)
+					if call == True:
+						# Agent knows that target has a captain
 						bluff_sequence.append(BluffSequence(Actions.Block_Steal, target, agent, False, True))
-					action_sequence.append(ActionSequence(action, agent, target, Actions.Block_Steal))
+
+					else:
+						# Agent doesn't know that the target has a captain
+						# TODO: HERE WE HAVE TO ADD BELIEF TO MAKE THE GAME BETTER
+						bluff_sequence.append(BluffSequence(Actions.Block_Steal, target, agent, False, False))
+						self.remove_card_and_update_model(agent)
+					
+					action_sequence.append((ActionSequence(action, agent, target, Actions.Block_Steal)))
 				else:
-					# Target cant't block card
-					rand_int = random.randint(1, 3)
-					if  rand_int == 1:
-						# target bluffs that he has Captain
-						if random.randint(0, 3) > 1:
-							# Agent believes the bluff and performs no action
-							action_sequence.append(ActionSequence(action, agent, target, Actions.Block_Steal))
-							bluff_sequence.append(BluffSequence(Actions.Block_Steal, target, agent, True, True))
-						else:
-							# Correctly called bluff so remove card of target
-							bluff_sequence.append(BluffSequence(Actions.Block_Steal, target, agent, True, False))
-							target.remove_card()
-							action_sequence.append(ActionSequence(action, agent, target, Actions.Block_Steal))
-							self.actions.perform_action(action, agent, target)
-					elif rand_int == 2:
-							# Target calls bluff on action
-						if valid_action:
-							# Wrongly called bluff
-							target.remove_card()
-							bluff_sequence.append(BluffSequence(action, agent, target, False, False))
-							self.actions.perform_action(action, agent, target)
-						else:
-							# Called bluff correctly
-							agent.remove_card()
-							bluff_sequence.append(BluffSequence(action, agent, target, True, False))						
-		
-					elif rand_int == 3:						
-						# Captain wasn't bluffed
+
+					call = self.model.has_knowledge(cards, target.identifier, agent.identifier, True, Influence.Captain)
+					# Target checks if he knows that agent has an Captain
+					if call == True:
+						# Target knows that agent has a captain: let's the steal happen
 						action_sequence.append(ActionSequence(action, agent, target))
 						bluff_sequence.append(BluffSequence(action, agent, target, False, True))
-						self.actions.perform_action(action, agent, target)
+						self.actions.perform_action(action, agent, target)	
+					if call == False:
+						# Target doesn't know that agent has an assassin:
+						rand_int = random.randint(1, 2)
+						if rand_int == 1:
+							# Target bluffs that he has captain
+							call = self.model.has_knowledge(cards, agent.identifier, target.identifier, True, Influence.Captain)
+							# Agent checks to see whether he knows that target has a Captain
+							if call == True:
+								# Agent knows that target has Captain: 
+								action_sequence.append((ActionSequence(action, agent, target, Actions.Block_Steal)))
+								bluff_sequence.append(BluffSequence(Actions.Block_Steal, target, agent, True, True))
+							else:
+								# Agent doesn't know that target has Captain: rightfully calls the bluff
+								bluff_sequence.append(BluffSequence(Actions.Block_Steal, target, agent, True, False))
+								#target.remove_card()
+								self.remove_card_and_update_model(target)
+								action_sequence.append(ActionSequence(action, agent, target, Actions.Block_Steal))
+								#self.actions.perform_action(action, agent, target)		
+								self.perform_action_and_update_model(action, agent, target)		
+
+						if rand_int == 2:
+							# Target rightfully calls bluff on Captain
+
+							bluff_sequence.append(BluffSequence(action, agent, target, False, False))
+							#target.remove_card()
+							self.remove_card_and_update_model(agent)
+							action_sequence.append(ActionSequence(action, agent, target))
+						#	self.actions.perform_action(action, agent, target)
+						#	self.perform_action_and_update_model(action, agent, target)
+
 
 		print("Agent {} chose action {} with action_seq len {}and bluff_seq len {}".format(agent.identifier, action, len(action_sequence), len(bluff_sequence)))
 		return action_sequence, bluff_sequence
-		'''
-			else:
-				# Bluff: pick a random action 
-				all_actions_active = self.all_actions_active.copy()
-				if agent.get_coins() >= 3:
-					all_actions_active.append("assassinate")
-				bluff_actions = []
 
-				print("Agent chooses: bluff")
-				actions = self.all_actions_active.copy()
-				print(actions)
-				if agent.get_coins() >= 3: 
-					actions.append("assassinate")
-				action = random.choice(actions)
-				for action in all_actions_active:
-					if action not in possible_actions_active:
-						bluff_actions.append(action)
-				#print(all_actions_active)
-				#print(bluff_actions)
-				action = random.choice(bluff_actions)
-				print("Action chosen:", action)
-		return action
-		'''
-
-	"""
-	def get_next_agent(self):
-		print(self.turn_counter)
-		if self.turn_counter >= self.n_players:
-			self.turn_counter = 0
-
-		agent = self.players[self.turn_counter]
-		self.turn_counter += 1
-
-		return agent
-	"""
 
 	def get_next_agent(self):
 		#print(self.turn_counter)
@@ -601,18 +467,6 @@ class Coup:
 				return agent	
 			else:
 				self.turn_counter += 1		
-
-
-		
-
-		#for i in range(self.turn_counter, self.n_players):
-
-
-		#agent = self.players[self.turn_counter]
-		
-
-		#return agent
-
 
 	def get_random_target(self, agent):
 		target_ids = []

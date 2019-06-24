@@ -50,6 +50,12 @@ class MainApplication(tk.Frame):
         self.turn_count_label = tk.Label(top_frame, text="Turn: 1", font=("Arial", 14))
         self.turn_count_label.grid(row=1, column=4, sticky="E")
 
+        self.world_count_label = tk.Label(top_frame, text="Worlds:" + str(self.game.model.count_worlds()), font=("Arial", 14))
+        self.world_count_label.grid(row=1, column=5, sticky="E")
+
+        self.relation_count_label = tk.Label(top_frame, text="Relations: " +str(self.game.model.count_relations()), font=("Arial", 14))
+        self.relation_count_label.grid(row=1, column=6, sticky="E")
+
         # Setup the game frame
         game_frame = tk.Frame(self.mainframe, bg='#DDDFDF', width=self.root.winfo_width(), height=700)     
         game_frame.grid(row=2, column=1, sticky="ew")
@@ -110,9 +116,17 @@ class MainApplication(tk.Frame):
             # Gameplay text
             action_text = tk.Text(action_frame)
             action_text.grid(row=1, column=1, sticky="nsew")
-  
+
             self.action_texts.append(action_text) 
             i += 1
+
+        bottom_frame = tk.Frame(self.mainframe, width=self.root.winfo_width(), height = 900)     
+        bottom_frame.grid(row=3, column=1, sticky="nsew")
+        self.game_console =  tk.Text(bottom_frame)
+        self.game_console.grid(row=1, column=1, columnspan=3, sticky="nsew")
+        scroll = tk.Scrollbar(bottom_frame)
+        self.game_console.configure(yscrollcommand=scroll.set)
+	
         
     def pause_game(self, event):
         # Set the pause to the opposite of it's current value
@@ -142,6 +156,8 @@ class MainApplication(tk.Frame):
         self.after(self.game_speed, self.update)
 
     def update_players(self, finished=False):
+        self.world_count_label.config(text="Worlds: "+str(self.game.model.count_worlds()))
+        self.relation_count_label.config(text="Relations: "+str(self.game.model.count_relations()))
         # Get the agent whos turn it is
 
         agent = self.game.get_next_agent()
@@ -150,6 +166,8 @@ class MainApplication(tk.Frame):
         for i, action_text in enumerate(self.action_texts):
             if i == agent.identifier:
                 action_text.delete(1.0, tk.END)
+                self.game_console.insert(tk.END, "Player {}'s turn\n".format(i))
+    
                 action_text.insert(tk.END, "Player's turn\n")
             else:
                 action_text.delete(1.0, tk.END)
@@ -160,29 +178,35 @@ class MainApplication(tk.Frame):
         for action_info in action_seq:
             action_counter += 1
             print(action_info.action_string(action_counter))
-
+            self.game_console.insert(tk.END, action_info.action_string(action_counter))
             self.action_texts[action_info.agent.identifier].insert(tk.END, action_info.action_string(action_counter))
             if action_info.target is not None:
                 action_counter += 1
                 print(action_info.target_string(action_counter))
+                self.game_console.insert(tk.END, action_info.target_string(action_counter))
                 self.action_texts[action_info.target.identifier].insert(tk.END, action_info.target_string(action_counter))
                 if action_info.block_action is not None:
                     action_counter += 1
                     if action_info.action is Actions.Foreign_Aid:
                         action_counter -= 1
                     print(action_info.block_string(action_counter))
+                    self.game_console.insert(tk.END,action_info.block_string(action_counter))
+             
                     self.action_texts[action_info.target.identifier].insert(tk.END, action_info.block_string(action_counter))
                     perform_action = False
                 else:
                     if action_info.action is not Actions.Coup:
                         action_counter += 1
+                        self.game_console.insert(tk.END,"{}. Player does not block the action\n".format(action_counter))
+             
                         print("{}. Player does not block the action\n".format(action_counter))
                         self.action_texts[action_info.target.identifier].insert(tk.END, "{}. Player does not block the action\n".format(action_counter))
 
             if len(bluff_seq) > 0:
                 bluff_info = bluff_seq[0]
 
-                
+                self.game_console.insert(tk.END, bluff_info.result_string(action_counter))
+             
                 print(bluff_info.result_string(action_counter))
                 action_counter += 1
                 
@@ -190,6 +214,8 @@ class MainApplication(tk.Frame):
                 if bluff_info.belief is not True:
                     action_counter += 1
                     print(bluff_info.agent_string(action_counter))
+                    self.game_console.insert(tk.END, bluff_info.agent_string(action_counter))
+             
                     self.action_texts[bluff_info.bluff_caller.identifier].insert(tk.END, bluff_info.result_string(action_counter))
                 if bluff_info.bluff and not bluff_info.belief:
                     # Bluff called correctly
@@ -200,8 +226,11 @@ class MainApplication(tk.Frame):
 
             if perform_action:
                 action_counter += 1
+                self.game_console.insert(tk.END, "{}. Player performs action\n".format(action_counter))
+             
                 print("{}. Player performs action\n".format(action_counter))
                 self.action_texts[action_info.agent.identifier].insert(tk.END, "{}. Player performs action\n".format(action_counter))
+            self.game_console.insert(tk.END, "\n-------------------------------\n")
             
             print("\n\n\n")
 
@@ -223,6 +252,7 @@ class MainApplication(tk.Frame):
         if game.finished:
             for player in game.players:
                 if player.is_alive():
+                    self.game_console.insert(tk.END, "*************Player won the game*************\n")
                     self.action_texts[player.identifier].insert(tk.END, "*************Player won the game*************\n")
                     return
 

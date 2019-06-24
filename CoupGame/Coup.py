@@ -7,6 +7,7 @@ from Kripke import KripkeModel
 from Enums import Influence, Actions
 from BluffSequence import BluffSequence
 from ActionSequence import ActionSequence
+
 class Coup:
 	def __init__(self, n_players):
 		self.n_players = n_players
@@ -17,11 +18,11 @@ class Coup:
 		self.make_deck()
 		#self.deck = ["ambassador", "ambassador", "ambassador", "assassin", "assassin","assassin", "captain", "captain","captain", "countessa","countessa","countessa", "duke", "duke", "duke"]
 		self.set_players()
-		self.all_actions_active = [Actions.Tax, Actions.Steal, Actions.Assasinate]
+		self.all_actions_active = [Actions.Tax, Actions.Steal, Actions.Assasinate, Actions.Income, Actions.Tax, Actions.Foreign_Aid]
 		self.all_actions_reactive = [Actions.Block_Assasinate, Actions.Block_Foreign_Aid, Actions.Block_Steal]
 		self.actions = Action()
 		self.finished = False
-		self.model = KripkeModel(n_players, [Influence.Ambassador, Influence.Contessa, Influence.Captain, Influence.Duke])
+	#	self.model = KripkeModel(n_players, [Influence.Ambassador, Influence.Contessa, Influence.Captain, Influence.Duke])
 
 	def deal_card(self):
 		if not self.deck:
@@ -78,7 +79,7 @@ class Coup:
 		# 25% chance to bluff
 		bluff = random.randint(0, 3)
 		
-		if bluff >= 0:
+		if bluff > 0:
 			# Player will not bluff
 			action = random.choice(possible_actions_active)
 			if action == Actions.Income:
@@ -88,15 +89,17 @@ class Coup:
 			elif action == Actions.Foreign_Aid:
 				# Random target will bluff having duke if he doesn't have it
 				if  random.randint(0, 3) == 0:
-					target = self.get_random_target(agent)
+					caller = self.get_random_target(agent)
 				else:
-					target = None
+					caller = None
 					for player in self.players:
+						if player.identifier == agent.identifier or not player.is_alive():
+							continue
 						if player.has_card(Influence.Duke):
-							target = player
+							caller = player
 							break
 							
-				if target is None:
+				if caller is None:
 					# No target can block
 						action_sequence.append(ActionSequence(action, agent, None))
 						self.actions.perform_action(action, agent)
@@ -104,19 +107,20 @@ class Coup:
 
 				if  random.randint(0, 3) > 1:
 					# Agent believes target
-					#TODO Fix believes in bluff
-					bluff_sequence.append(BluffSequence(Actions.Block_Foreign_Aid, target, agent, False))
+					action_sequence.append(ActionSequence(action, agent, caller, Actions.Block_Foreign_Aid))
+					bluff_sequence.append(BluffSequence(Actions.Block_Foreign_Aid, caller, agent, False, True))
 				else:
 					# Agent doesn't believe target
-					if target.has_card(Influence.Duke):
+					if caller.has_card(Influence.Duke):
 						# Wrongly called bluff
-						bluff_sequence.append(BluffSequence(Actions.Block_Foreign_Aid, target, agent, False))
+						action_sequence.append(ActionSequence(action, agent, caller, Actions.Block_Foreign_Aid))
+						bluff_sequence.append(BluffSequence(Actions.Block_Foreign_Aid, caller, agent, False, False))
 						agent.remove_card()
 					else:
 						# Correctly called bluff on target
-						bluff_sequence.append(BluffSequence(Actions.Block_Foreign_Aid, target, agent, True))
-						target.remove_card()
-						action_sequence.append(ActionSequence(action, agent, None))
+						bluff_sequence.append(BluffSequence(Actions.Block_Foreign_Aid, caller, agent, True, False))
+						caller.remove_card()
+						action_sequence.append(ActionSequence(action, agent, caller, Actions.Block_Foreign_Aid))
 						self.actions.perform_action(action, agent)
 			
 						
@@ -126,7 +130,7 @@ class Coup:
 					bluff_caller = self.get_random_target(agent)
 					bluff_caller.remove_card()
 					action_sequence.append(ActionSequence(action, agent, None))
-					bluff_sequence.append(BluffSequence(action, agent, bluff_caller, False))
+					bluff_sequence.append(BluffSequence(action, agent, bluff_caller, False, False))
 					self.actions.perform_action(action, agent)
 				else:
 					# No bluff was called
@@ -139,10 +143,11 @@ class Coup:
 					# target calls block with countessa
 					if random.randint(0, 3) == 0:
 						# agent wrongfully calls bluff
-						bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, False))
+						bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, False, False))
 						agent.remove_card()
-					# Action is blocked
-					action_sequence.append((ActionSequence(Actions.Block_Assasinate, target, agent)))
+					# Agent doesn't calll bluff so action is blocked
+					bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, False, True))
+					action_sequence.append((ActionSequence(action, agent, target, Actions.Block_Assasinate)))
 				else:
 					# Target cant't block card
 					rand_int = random.randint(1, 3)
@@ -151,18 +156,17 @@ class Coup:
 						if random.randint(0, 3) > 1:
 							# Agent believes the bluff; loses coins and performs no action
 							agent.remove_coins(3)
-							#TODO Fix bluffsequence zodat je kan believen/niet believen
-							action_sequence.append((ActionSequence(Actions.Block_Assasinate, target, agent)))
-							bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, False))
+							action_sequence.append((ActionSequence(action, agent, target, Actions.Block_Assasinate)))
+							bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, True, True))
 						else:
 							# Correctly called bluff so remove card of target
-							bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, True))
+							bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, True, False))
 							target.remove_card()
-							action_sequence.append(ActionSequence(action, agent, target))
+							action_sequence.append(ActionSequence(action, agent, target, Actions.Block_Assasinate))
 							self.actions.perform_action(action, agent, target)
 					elif rand_int == 2:
 						# Target wrongly calls bluff on assinate
-						bluff_sequence.append(BluffSequence(action, target, agent, False))
+						bluff_sequence.append(BluffSequence(action, agent, target, False, False))
 						target.remove_card()
 						action_sequence.append(ActionSequence(action, agent, target))
 						self.actions.perform_action(action, agent, target)
@@ -170,6 +174,7 @@ class Coup:
 					elif rand_int == 3:
 						# Call no bluff; let action through
 						action_sequence.append(ActionSequence(action, agent, target))
+						bluff_sequence.append(BluffSequence(action, agent, target, False, True))
 						self.actions.perform_action(action, agent, target)
 
 			elif action == Actions.Steal:
@@ -178,10 +183,11 @@ class Coup:
 					# target calls block with Captain
 					if random.randint(0, 3) == 0:
 						# agent wrongfully calls bluff
-						bluff_sequence.append(BluffSequence(Actions.Block_Steal, target, agent, False))
+						bluff_sequence.append(BluffSequence(Actions.Block_Steal, target, agent, False, False))
 						agent.remove_card()
 					# Action is blocked
-					action_sequence.append(ActionSequence(Actions.Block_Steal, target, agent))
+					bluff_sequence.append(BluffSequence(Actions.Block_Steal, target, agent, False, True))
+					action_sequence.append(ActionSequence(action, agent, target, Actions.Block_Steal))
 				else:
 					# Target cant't block card
 					rand_int = random.randint(1, 3)
@@ -189,230 +195,192 @@ class Coup:
 						# target bluffs that he has Captain
 						if random.randint(0, 3) > 1:
 							# Agent believes the bluff and performs no action
-							action_sequence.append(ActionSequence(Actions.Block_Steal, target, agent))
-							bluff_sequence.append(BluffSequence(Actions.v, target, agent, False))
+							action_sequence.append(ActionSequence(action, agent, target, Actions.Block_Steal))
+							bluff_sequence.append(BluffSequence(Actions.Block_Steal, target, agent, True, True))
 						else:
 							# Correctly called bluff so remove card of target
-							bluff_sequence.append(BluffSequence(Actions.Block_Steal, target, agent, True))
+							bluff_sequence.append(BluffSequence(Actions.Block_Steal, target, agent, True, False))
 							target.remove_card()
-							action_sequence.append(ActionSequence(action, agent, target))
+							action_sequence.append(ActionSequence(action, agent, target, Actions.Block_Steal))
 							self.actions.perform_action(action, agent, target)
 					elif rand_int == 2:
-						bluff_sequence.append(BluffSequence(action, target, agent, False))
+						# Target wrongly calls bluff on steal
+						bluff_sequence.append(BluffSequence(action, agent, target, False, False))
 						target.remove_card()
 						action_sequence.append(ActionSequence(action, agent, target))
 						self.actions.perform_action(action, agent, target)
 					elif rand_int == 3:						
 						# Captain wasn't bluffed
 						action_sequence.append(ActionSequence(action, agent, target))
+						bluff_sequence.append(BluffSequence(action, agent, target, False, True))
 						self.actions.perform_action(action, agent, target)
 
 		
 		else:
-			pass
-			# Agent will possibly bluff a card
+			# Possibly bluff an action
+			all_actions_active = self.all_actions_active.copy()
+			agent.coins = 0
+			if agent.coins < 3:
+				all_actions_active.remove(Actions.Assasinate)
+			action = random.choice(all_actions_active)
 
+			if action in possible_actions_active:
+				valid_action = True
+			else:
+				valid_action = False
+
+			if action == Actions.Income:
+				action_sequence.append(ActionSequence(action, agent, None))
+				self.actions.perform_action(action, agent)
+
+			elif action == Actions.Foreign_Aid:
+				# Random target will bluff having duke if he doesn't have it
+				if  random.randint(0, 3) == 0:
+					caller = self.get_random_target(agent)
+				else:
+					caller = None
+					for player in self.players:
+						if player.identifier == agent.identifier or not player.is_alive():
+							continue
+						if player.has_card(Influence.Duke):
+							caller = player
+							break
+							
+				if caller is None:
+					# No target can block
+						action_sequence.append(ActionSequence(action, agent, None))
+						self.actions.perform_action(action, agent)
+						return action_sequence, bluff_sequence
+
+				if  random.randint(0, 3) > 1:
+					# Agent believes target
+					action_sequence.append(ActionSequence(action, agent, caller, Actions.Block_Foreign_Aid))
+					bluff_sequence.append(BluffSequence(Actions.Block_Foreign_Aid, caller, agent, False, True))
+				else:
+					# Agent doesn't believe target
+					if caller.has_card(Influence.Duke):
+						# Wrongly called bluff
+						action_sequence.append(ActionSequence(action, agent, caller, Actions.Block_Foreign_Aid))
+						bluff_sequence.append(BluffSequence(Actions.Block_Foreign_Aid, caller, agent, False, False))
+						agent.remove_card()
+					else:
+						# Correctly called bluff on target
+						bluff_sequence.append(BluffSequence(Actions.Block_Foreign_Aid, caller, agent, True, False))
+						caller.remove_card()
+						action_sequence.append(ActionSequence(action, agent, caller, Actions.Block_Foreign_Aid))
+						self.actions.perform_action(action, agent)
+			
+			elif action == Actions.Tax:
+				action_sequence.append(ActionSequence(action, agent, None))
+				if random.randint(0, 3) == 0:
+					# Random player calls bluff
+					bluff_caller = self.get_random_target(agent)
+					if valid_action:
+						# Wrongly called bluff
+						bluff_caller.remove_card()
+						bluff_sequence.append(BluffSequence(action, agent, bluff_caller, False, False))
+						self.actions.perform_action(action, agent)
+					else:
+						# Called bluff correctly
+						agent.remove_card()
+						bluff_sequence.append(BluffSequence(action, agent, bluff_caller, True, False))
+					
+				else:
+					# No bluff was called
+					self.actions.perform_action(action, agent)
+
+			elif action == Actions.Assasinate:
+				target = self.get_random_target(agent)
+				if target.has_card(Influence.Contessa):
+					# target calls block with countessa
+					if random.randint(0, 3) == 0:
+						# agent wrongfully calls bluff
+						bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, False, False))
+						agent.remove_card()
+					# Agent doesn't calll bluff so action is blocked
+					bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, False, True))
+					action_sequence.append((ActionSequence(action, agent, target, Actions.Block_Assasinate)))
+				else:
+					# Target cant't block card
+					rand_int = random.randint(1, 3)
+					if   rand_int == 1:
+						# target bluffs that he has contessa
+						if random.randint(0, 3) > 1:
+							# Agent believes the bluff; loses coins and performs no action
+							agent.remove_coins(3)
+							action_sequence.append((ActionSequence(action, agent, target, Actions.Block_Assasinate)))
+							bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, True, True))
+						else:
+							# Correctly called bluff so remove card of target
+							bluff_sequence.append(BluffSequence(Actions.Block_Assasinate, target, agent, True, False))
+							target.remove_card()
+							action_sequence.append(ActionSequence(action, agent, target, Actions.Block_Assasinate))
+							self.actions.perform_action(action, agent, target)
+					elif rand_int == 2:
+							# Target calls bluff on action
+						if valid_action:
+							# Wrongly called bluff
+							target.remove_card()
+							bluff_sequence.append(BluffSequence(action, agent, target, False, False))
+							self.actions.perform_action(action, agent, target)
+						else:
+							# Called bluff correctly
+							agent.remove_card()
+							bluff_sequence.append(BluffSequence(action, agent, target, True, False))						
+		
+					elif rand_int == 3:
+						# Call no bluff; let action through
+						action_sequence.append(ActionSequence(action, agent, target))
+						bluff_sequence.append(BluffSequence(action, agent, target, False, True))
+						self.actions.perform_action(action, agent, target)	
+
+			elif action == Actions.Steal:
+				target = self.get_random_target(agent)
+				if target.has_card(Influence.Captain):
+					# target calls block with Captain
+					if random.randint(0, 3) == 0:
+						# agent wrongfully calls bluff
+						bluff_sequence.append(BluffSequence(Actions.Block_Steal, target, agent, False, False))
+						agent.remove_card()
+					# Action is blocked
+					bluff_sequence.append(BluffSequence(Actions.Block_Steal, target, agent, False, True))
+					action_sequence.append(ActionSequence(action, agent, target, Actions.Block_Steal))
+				else:
+					# Target cant't block card
+					rand_int = random.randint(1, 3)
+					if  rand_int == 1:
+						# target bluffs that he has Captain
+						if random.randint(0, 3) > 1:
+							# Agent believes the bluff and performs no action
+							action_sequence.append(ActionSequence(action, agent, target, Actions.Block_Steal))
+							bluff_sequence.append(BluffSequence(Actions.Block_Steal, target, agent, True, True))
+						else:
+							# Correctly called bluff so remove card of target
+							bluff_sequence.append(BluffSequence(Actions.Block_Steal, target, agent, True, False))
+							target.remove_card()
+							action_sequence.append(ActionSequence(action, agent, target, Actions.Block_Steal))
+							self.actions.perform_action(action, agent, target)
+					elif rand_int == 2:
+							# Target calls bluff on action
+						if valid_action:
+							# Wrongly called bluff
+							target.remove_card()
+							bluff_sequence.append(BluffSequence(action, agent, target, False, False))
+							self.actions.perform_action(action, agent, target)
+						else:
+							# Called bluff correctly
+							agent.remove_card()
+							bluff_sequence.append(BluffSequence(action, agent, target, True, False))						
+		
+					elif rand_int == 3:						
+						# Captain wasn't bluffed
+						action_sequence.append(ActionSequence(action, agent, target))
+						bluff_sequence.append(BluffSequence(action, agent, target, False, True))
+						self.actions.perform_action(action, agent, target)
+
+		print("Agent {} chose action {} with action_seq len {}and bluff_seq len {}".format(agent.identifier, action, len(action_sequence), len(bluff_sequence)))
 		return action_sequence, bluff_sequence
 		'''
-			elif action == "assassinate":
-				if target.has_card("countessa"):
-					# target calls block with countessa
-					rand_int = random.randint(1, 4)
-					if rand_int >= 4:
-						# agent wrongfully calls bluff
-						agent.remove_card()
-				else:
-					rand_int = random.randint(1, 4)
-					if rand_int >= 4:
-						# target bluffs that he has countessa
-						rand_int = random.randint(1, 4)
-						if rand_int >= 3:
-							# agent believes the bluff: pay the 3 coins, nothing happens
-							agent.remove_coins(3)
-						else:
-							# agent calls the bluff
-							target.remove_card()
-
-
-			elif action == "steal":
-				if target.has_card("captain"):
-					# target calls block with captain
-					rand_int = random.randint(1, 4)
-					if rand_int >= 4:
-						# agent wrongfully calls bluff
-						agent.remove_card()
-				else:
-					
-					rand_int = random.randint(1, 4)
-					if rand_int >= 4:
-						# target bluffs that he has captain
-						rand_int = random.randint(1, 4)
-						if rand_int >= 3:
-							# agent believes the bluff: nothing happens
-							pass
-						else:
-							# agent calls the bluff
-							target.remove_card()
-
-			self.actions.choose_action(action, agent, target)
-			'''
-		'''
-			if bluff == 0:
-				# No bluff: pick one of the available card actions
-				print("Agent chooses: no bluff")
-
-				# Choose a random action for the available actions
-				action = random.choice(possible_actions_active)
-
-				# TODO: prompt action, let other agents react to this prompt (call bluff for example)
-
-				target = self.get_random_target(agent)
-				print("Action chooses:", action)
-				print("Target: Agent", target.get_id())
-				if action == "tax":
-					rand_int = random.randint(1, 4)
-					if rand_int >= 4:
-						# random agent wrongfully calls bluff
-						caller = self.get_random_target(agent)
-						caller.remove_card()
-
-				elif action == "assassinate":
-					if target.has_card("countessa"):
-						# target calls block with countessa
-						rand_int = random.randint(1, 4)
-						if rand_int >= 4:
-							# agent wrongfully calls bluff
-							agent.remove_card()
-					else:
-						rand_int = random.randint(1, 4)
-						if rand_int >= 4:
-							# target bluffs that he has countessa
-							rand_int = random.randint(1, 4)
-							if rand_int >= 3:
-								# agent believes the bluff: pay the 3 coins, nothing happens
-								agent.remove_coins(3)
-							else:
-								# agent calls the bluff
-								target.remove_card()
-
-
-				elif action == "steal":
-					if target.has_card("captain"):
-						# target calls block with captain
-						rand_int = random.randint(1, 4)
-						if rand_int >= 4:
-							# agent wrongfully calls bluff
-							agent.remove_card()
-					else:
-						
-						rand_int = random.randint(1, 4)
-						if rand_int >= 4:
-							# target bluffs that he has captain
-							rand_int = random.randint(1, 4)
-							if rand_int >= 3:
-								# agent believes the bluff: nothing happens
-								pass
-							else:
-								# agent calls the bluff
-								target.remove_card()
-
-				self.actions.choose_action(action, agent, target)
-
-
-		# Return Action, Target, IsBluff
-		if agent.get_coins() >= 7:
-			target = self.get_random_target(agent)
-			# agent must coup if coins are >= 7
-			action = "coup"
-			self.actions.choose_action(action, agent, target)
-		else:
-			bluff = 0
-			rand_int = random.randint(1, 4)
-			if rand_int >= 2:
-				bluff = 1
-
-			cards = agent.get_cards()
-			possible_actions_active = []
-			possible_actions_reactive = []
-			for card_actions in agent.get_possible_actions("active"):
-				for action in card_actions:
-					if action == "assassinate":
-						if agent.get_coins() >= 3: 
-							# only allow assasinate if agent has >= 3 coins
-							possible_actions_active.append(action)
-					else:
-						possible_actions_active.append(action)
-
-			for card_actions in agent.get_possible_actions("reactive"):
-				for action in card_actions:
-					possible_actions_reactive.append(action)
-
-			possible_actions_active.append("income")
-			possible_actions_active = set(possible_actions_active)
-			possible_actions_reactive = set(possible_actions_reactive)
-			possible_actions_active = list(filter(None, possible_actions_active))
-			possible_actions_reactive = list(filter(None, possible_actions_reactive))
-			#print(possible_actions_active)
-			if bluff == 0:
-				# No bluff: pick one of the available card actions
-				print("Agent chooses: no bluff")
-
-				action = random.choice(possible_actions_active)
-
-				# TODO: prompt action, let other agents react to this prompt (call bluff for example)
-
-				target = self.get_random_target(agent)
-				print("Action chooses:", action)
-				print("Target: Agent", target.get_id())
-				if action == "tax":
-					rand_int = random.randint(1, 4)
-					if rand_int >= 4:
-						# random agent wrongfully calls bluff
-						caller = self.get_random_target(agent)
-						caller.remove_card()
-
-				elif action == "assassinate":
-					if target.has_card("countessa"):
-						# target calls block with countessa
-						rand_int = random.randint(1, 4)
-						if rand_int >= 4:
-							# agent wrongfully calls bluff
-							agent.remove_card()
-					else:
-						rand_int = random.randint(1, 4)
-						if rand_int >= 4:
-							# target bluffs that he has countessa
-							rand_int = random.randint(1, 4)
-							if rand_int >= 3:
-								# agent believes the bluff: pay the 3 coins, nothing happens
-								agent.remove_coins(3)
-							else:
-								# agent calls the bluff
-								target.remove_card()
-
-
-				elif action == "steal":
-					if target.has_card("captain"):
-						# target calls block with captain
-						rand_int = random.randint(1, 4)
-						if rand_int >= 4:
-							# agent wrongfully calls bluff
-							agent.remove_card()
-					else:
-						
-						rand_int = random.randint(1, 4)
-						if rand_int >= 4:
-							# target bluffs that he has captain
-							rand_int = random.randint(1, 4)
-							if rand_int >= 3:
-								# agent believes the bluff: nothing happens
-								pass
-							else:
-								# agent calls the bluff
-								target.remove_card()
-
-				self.actions.choose_action(action, agent, target)
-
 			else:
 				# Bluff: pick a random action 
 				all_actions_active = self.all_actions_active.copy()
@@ -527,8 +495,6 @@ class Coup:
 		self.deck = []
 		self.make_deck()
 		self.set_players()
-		self.all_actions_active = ["tax", "steal", "swap_influence"]
-		self.all_actions_reactive = ["block_foreign_aid", "block_assassination", "block_steal"]
-		self.actions = Action()
+
 		self.finished = False
 

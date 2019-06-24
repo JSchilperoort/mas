@@ -2,7 +2,7 @@ from Coup import Coup
 import tkinter as tk
 from PIL import Image, ImageTk
 from tkinter import ttk
-from Enums import Influence
+from Enums import Influence, Actions
 
 class MainApplication(tk.Frame):
     def __init__(self, root, game, *args, **kwargs):
@@ -136,53 +136,96 @@ class MainApplication(tk.Frame):
             game.is_finished()
             if game.finished:
                 # Stop the repeating loop when game is finished by return before .after
-                self.update_players(finished=True)
+               # self.update_players(finished=True)
                 return
 
         self.after(self.game_speed, self.update)
 
     def update_players(self, finished=False):
-        #TODO do something with finished
-        i = 0
         # Get the agent whos turn it is
+
         agent = self.game.get_next_agent()
-        # Update every player frame
-        for player, coin_label, card_labels, action_text in zip(self.game.players, self.coin_labels, self.player_cards, self.action_texts):
+        action_counter = 0
+
+        for i, action_text in enumerate(self.action_texts):
             if i == agent.identifier:
+                action_text.delete(1.0, tk.END)
                 action_text.insert(tk.END, "Player's turn\n")
             else:
                 action_text.delete(1.0, tk.END)
 
+        action_seq, bluff_seq = self.game.choose_action(agent)
+
+        blocked = False
+        bluffed = False
+        for action_info in action_seq:
+            action_counter += 1
+            print(action_info.action_string(action_counter))
+
+            self.action_texts[action_info.agent.identifier].insert(tk.END, action_info.action_string(action_counter))
+            if action_info.target is not None:
+                action_counter += 1
+                print(action_info.target_string(action_counter))
+                self.action_texts[action_info.target.identifier].insert(tk.END, action_info.target_string(action_counter))
+                if action_info.block_action is not None:
+                    action_counter += 1
+                    if action_info.action is Actions.Foreign_Aid:
+                        action_counter -= 1
+                    print(action_info.block_string(action_counter))
+                    self.action_texts[action_info.target.identifier].insert(tk.END, action_info.block_string(action_counter))
+                    blocked = True
+                else:
+                    if action_info.action is not Actions.Coup:
+                        action_counter += 1
+                        print("{}. Player does not block the action\n".format(action_counter))
+                        self.action_texts[action_info.target.identifier].insert(tk.END, "{}. Player does not block the action\n".format(action_counter))
+
+            if len(bluff_seq) > 0:
+                bluff_info = bluff_seq[0]
+
+                
+                print(bluff_info.result_string(action_counter))
+                action_counter += 1
+                
+                self.action_texts[bluff_info.bluff_caller.identifier].insert(tk.END, bluff_info.agent_string(action_counter))
+                if bluff_info.belief is not True:
+                    action_counter += 1
+                    print(bluff_info.agent_string(action_counter))
+                    self.action_texts[bluff_info.bluff_caller.identifier].insert(tk.END, bluff_info.result_string(action_counter))
+                if bluff_info.bluff and not bluff_info.belief:
+                    # Bluff called correctly
+                    bluffed = False
+                    blocked = False
+                else:
+                    bluffed = True
+
+            if not blocked or not bluffed:
+                action_counter += 1
+                print("{}. Player performs action\n".format(action_counter))
+                self.action_texts[action_info.agent.identifier].insert(tk.END, "{}. Player performs action\n".format(action_counter))
+            
+            print("\n\n\n")
+
+        # Update every player frame
+        for player, coin_label, card_labels, action_text in zip(self.game.players, self.coin_labels, self.player_cards, self.action_texts):
+
             # Update the cards with the dead cards
-            j = 0
+            i = 0
             for card in player.cards:
-                card_labels[j].config(image=self.load_image(self.card_image_path(card.influence), size=self.card_size))
-                j += 1
-            if j < 2:
+                card_labels[i].config(image=self.load_image(self.card_image_path(card.influence), size=self.card_size))
+                i += 1
+            if i < 2:
                 for card in player.dead_cards:
-                    card_labels[j].config(image=self.load_image(self.card_image_path(card.influence, dead=True), size=self.card_size))
-                    j += 1
+                    card_labels[i].config(image=self.load_image(self.card_image_path(card.influence, dead=True), size=self.card_size))
+                    i += 1
 
             coin_label.config(text=player.coins)
-            
-            i += 1
-        action_seq, bluff_seq = self.game.choose_action(agent)
-        for action_info in action_seq:
-            print(action_info.action_string())
-            self.action_texts[action_info.agent.identifier].insert(tk.END, action_info.action_string())
-            if action_info.target is not None:
-                print(action_info.target_string())
-                self.action_texts[action_info.target.identifier].insert(tk.END, action_info.target_string())
-
-            bluff_info = [x for x in bluff_seq if x.action == action_info.action]
-            if len(bluff_info) > 0:
-                bluff_info = bluff_info[0]
-                print(bluff_info.agent_string())
-                print(bluff_info.target_string())
-                print(bluff_info.result_string())
-                self.action_texts[bluff_info.agent.identifier].insert(tk.END, bluff_info.agent_string())
-                self.action_texts[bluff_info.bluff_caller.identifier].insert(tk.END, bluff_info.target_string())
-                self.action_texts[bluff_info.bluff_caller.identifier].insert(tk.END, bluff_info.result_string())
+        game.is_finished()
+        if game.finished:
+            for player in game.players:
+                if player.is_alive():
+                    self.action_texts[player.identifier].insert(tk.END, "*************Player won the game*************\n")
+                    return
 
 
 
@@ -220,7 +263,7 @@ if __name__ == "__main__":
     root.geometry('1600x900')
     root.update()
 
-    game = Coup(3)
+    game = Coup(4)
 
     MainApplication(root,  game).grid()
     root.mainloop()

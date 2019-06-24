@@ -67,7 +67,36 @@
        Contiains the relations between a card and the actual actions the card provides.
 
        <h4 class="mt-4">Kripke.py:</h4> 
-       Contains all the code used for generating our Kripke models, as well as the query code which agents use to check their knowledge and beliefs.
+       <p>Contains all the code used for generating our Kripke models, as well as the query code which agents use to check their knowledge and beliefs. The file contains the class 'KripkeModel' and the class 'world'. The kripkemodel class contains a list of all worlds, which are initialized when an object of the class is created. An instance of the world class represents a world with a unique arrangement of the cards distributed over the players. Furthermore, the world contains for each player a list with the relations to other worlds.</p>
+       <h5 class="mt-4">Variables in KripkeModel</h5>
+       <ul>
+           <li>n_players (int): the number of players participating in the game</li>
+           <li>worlds (list): contains all worlds in the kripke model</li>
+           <li>cards (list): contains all types of cards in the deck</li>
+       </ul>
+       
+       <h5 class="mt-4">Variables in World</h5>
+       <ul>
+           <li>formulas (list of cards): the arrangement of the cards over the players in this world</li>
+           <li>visible_cards (list of booleans): which cards have been flipped over yet</li>
+           <li>n_players (int): number of players participating in the game</li>
+           <li>relations_x (list of worlds): relations for player 'x' from this world</li>
+       </ul>
+       
+       <h5 class="mt-4">Most important functions of KripkeModel</h5>
+       <ul>
+           <li>set_worlds(): computes all possible worlds (unique arrangements of cards) using the 'itertools' library. In these arrangements a player hand 'ab' is considered to be equal to 'ba' since the order of the cards within a hand does not matter. Each world is created as an instance of the World class and appended to the list of worlds. At the end the function set_relations() is called to set the relations between the worlds.</li>
+           <li>set_relations(): loops over all worlds and sets the relations for each player to the other worlds. A relation is set for agent X from world A to world B if the hand of agent X is equal in world A and B. This relation is set in both directions since these relations are reflexive. </li>
+           <li>has_belief(cards_player, card): this function returns whether the agent with 'cards_player' has the belief that any other agent has 'card'. Note that this is not actually part of our kripke model, but is required to make the game less static. The function returns True if the agent knows that at least two instances of this card are either in its own hand or discarded. This means that there is only one other instance of this card left in the game, giving the agent the belief that 'probably' the other agents do not have this card.</li>
+           <li>has_knowledge(cards_player, player, opponent, boolean, card): return whether 'player' with cards 'cards_player' knows that 'opponent' has 'card' (if boolean is False, it returns whether the agent knows that the opponent does not have this card). The query can be seen as M &#8873; K&#8321;(has&#8322;(card)), in which k&#8321;() represents 'player' knows and has&#8322;(card) represents 'opponent' has 'card'. If the value of this is True, the agent knows that the other agent has the card, otherwise there is no certainty.</li>
+           <li>flip_card(player, card): 'player' had to flip over its 'card' (so this card cannot be used anymore and is seen by the other players). This function creates a new kripke model. It creates a new list of worlds, where the worlds in which the 'player' did not have 'card' in its hand are removed. It calls the function set_relations() again to set the new relations. Finally, it also removes all relations of dead players, as they are not relevant anymore.</li>
+       </ul>
+       
+       <h5 class="mt-4">Most important functions of World</h5>
+       <ul>
+           <li>has_card_in_all_worlds(player, opponent, card): returns True when 'opponent' has 'card' in all worlds accessible from this world by 'player'.</li>
+           <li>does_not_have_card_in_any_world(player, opponent, card): returns True when 'opponent' does not have 'card' in all worlds accessible from this world by 'player'</li>
+       </ul>
 
 
 

@@ -15,7 +15,26 @@
 
   <!-- Custom styles for this template -->
   <link href="../css/simple-sidebar.css" rel="stylesheet">
+<style>
+* {
+  box-sizing: border-box;
+}
 
+.column {
+  float: left;
+  width: 33.33%;
+  padding: 5px;
+
+}
+
+/* Clearfix (clear floats) */
+.row::after {
+  content: "";
+  clear: both;
+  display: table;
+
+}
+</style>
 </head>
 
 <body>
@@ -43,46 +62,64 @@
       <div class="container-fluid">
         <h1 class="mt-4">Game Overview</h1>
 
-        Coup is a cardgame that revolves around strategy and bluffing. The game is played with 2-6 players and there are five unique cards each with their own abilities, namely the captain, duke, ambassador, assassin and countessa. There are three copies of each card in the deck, and each player starts with two random cards and two coins. The objective of the game is to be the only player with cards left. 
-
+        <p>The game is played with up to 6 players. At the start of the game, each player is given two influence cards which remain secret for the other players. The game is played turn by turn until only one player with influence cards is left. A single turn consists of an action that can be blocked. both card-specific actions and blocks can be challenged by other players.</p>
+        <p>The game contains a deck of 15 influence cards. Each type of influence card allows a player to take a card-specific action and/or block a certain action. The deck contains 3 of each of the following influence card type:</p>
         <img src="../img/coup.jpg" alt="Coup Image" style="width:1000px;height:600px;">
 
 
       </div>
 
       <div class="container-fluid">
-        <h1 class="mt-4">Cards</h1>
+        <h1 class="mt-4">Influence Cards</h1>
 
 
-      <div class="container">
-          <div class="row">
-              <div class="col-sm-2"> <img src="../img/duke.jpg" alt="Snow" style="width:100%;height:100%;"></div>
-              <div class="col-sm-2"> <img src="../img/assassin.jpg" alt="Snow" style="width:100%;height:100%;"></div>
-               <div class="col-sm-2"> <img src="../img/captain.jpg" alt="Snow" style="width:100%;height:100%;"></div>
-               <div class="col-sm-2"> <img src="../img/contessa.jpg" alt="Snow" style="width:100%;height:100%;"></div>
-               <div class="col-sm-2"> <img src="../img/ambassador.png" alt="Snow" style="width:100%;height:100%;"></div>
-          </div>
+        <h4 class="mt-4">Duke</h4>
+        <img src="../img/duke.jpg" alt="Snow" style="width:10%;height:10%;"> <br>
+        The duke can levy taxes as an action, gaining two coins from the bank and can block foreign aid.
+
+        <h4 class="mt-4">Assassin</h4>
+        <img src="../img/assassin.jpg" alt="Snow" style="width:10%;height:10%;"> <br>
+        The assassin can force a player to give up one of his influence cards for three coins as an action.
+
+        <h4 class="mt-4">Captain</h4>
+        <img src="../img/captain.jpg" alt="Snow" style="width:10%;height:10%;"> <br>
+        The captain can steal two coins from another player as an action, or block an attempt to steal.
+
+        <h4 class="mt-4">Countessa</h4>
+        <img src="../img/contessa.jpg" alt="Snow" style="width:10%;height:10%;"> <br>
+		The countessa can block an assassination attempt.
+
+        <h4 class="mt-4">Ambassador</h4>
+        <img src="../img/ambassador.png" alt="Snow" style="width:10%;height:10%;"> <br>
+		The ambassador is left out in our implementation of the game. Therefore our implementation is played with 4 types of influence cards and a deck of 12 cards.
+
+	  </div>
+
+	  <div class="container-fluid">
+        <h1 class="mt-4">Rules</h1>
+
+        In addition to the aforementioned card-specific actions, there are three more actions that can always be taken. All possible actions are: <br><br>
+
+        <ul>
+          <li>Income: take one coin from the bank.</li>
+          <li>Foreign Aid: take two coins from the bank, can be blocked by the duke.</li>
+          <li>Coup: spend seven coins to make one chosen player give up one of their influence cards.</li>
+          <li>Taxes: take three coins from the bank(duke ability).</li>
+          <li>Assassinate: spend three coins to make one chosen player give up one of their influence cards (assassin ability).</li>
+          <li>Steal: take two coins from another player. Can be blocked with a captain (captain ability).</li>
+        </ul>
+
+
 
       </div>
 
       <div class="container-fluid">
-        <h1 class="mt-4">Rules</h1>
+        <h1 class="mt-4">Actions, blocks and challenges</h1>
 
-        A round is played as follows: each players chooses one of the possible actions. The possible actions are: <br><br>
-
-        <ul>
-          <li>Income: take one coin.</li>
-          <li>Foreign Aid: take two coins, can be blocked with a duke.</li>
-          <li>Coup: spend seven coins to make one chosen player give up one of their cards.</li>
-          <li>Taxes: take three coins (duke ability).</li>
-          <li>Assassinate: spend three coins to make one chosen player give up one of their cards (assassin ability).</li>
-          <li>Steal: take two coins from another player. Can be blocked with a captain or ambassador (captain ability)</li>
-          <li> Swap Cards: draw two cards from the deck and add them to your hand, choose two out of four and put the remaining two back in the deck (ambassador ability).</li>
-        </ul>
-
-        Furthermore, the countessa has no active ability but can instead be used to block an assassination attempt. A player can choose any action (provided they have enough coins for it), even though they may not actually have the corresponding card. Other players can then choose to believe the player or call their bluff. When a wrongful bluff is called, the player calling the bluff loses one card. 
-
-      </div>
+        <p>As the game is played, many actions, blocks and challenges are encountered. As a card-specific action is played, that player claims to have the proper influence card to do so. This can be challenged by all other players. Whenever an action is played that can be blocked, all players are allowed to block the action. By blocking, they claim to have the proper influence card to do so. This can be challenged by the players whos action is being blocked.</p>
+	    <p>When a challenge takes place, the player that is challenged has to reveal an influence card. If this is the influence card that she has claimed to have, the challenge is unsuccessful. The influence card is shuffled into the deck and a new one is drawn. The challenging player loses an influence card that is revealed to everyone and the original action or block will go through as intended. However, if she does not show the claimed influence card, the challenge is successful. She will lose the revealed influence card. The block or action that was challenged will not go through.</p>
+        <p>As players spend and gain coins from the bank or each other, they will be able to afford assassinations and coups. These actions, in addition to challenges will reduce the number of influence cards players have. When a player loses both her influence cards, she is 'dead', and quits the game. The last player standing wins the game.</p>
+	  </div>
 
 
     </div>

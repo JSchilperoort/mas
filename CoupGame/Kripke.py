@@ -108,7 +108,6 @@ class KripkeModel:
 				new_worlds.append(world)
 		self.worlds = new_worlds
 		self.remove_relations()
-		print(self.count_relations())
 		self.set_relations()
 		self.remove_relations_dead_players()
 
@@ -120,6 +119,7 @@ class World:
 		self.n_players = n_players  # number of players in the game
 		self.relations_player0 = [self]
 		self.relations_player1 = [self]
+		self.relations_player2 = [self]
 
 		self.cards = cards  # all cards
 
@@ -132,30 +132,47 @@ class World:
 
 	# set a relation between two worlds (exists as a list of pointers from this world to those worlds)
 	def set_relation(self, world, player):
-		# print()
-		# print(self.relations_player0)
-		# print(self.relations_player1)
 		if player == 0:
 			self.relations_player0.append(world)
 		if player == 1:
 			self.relations_player1.append(world)
-		#
-		# print(self.relations_player0)
-		# print(self.relations_player1)
+		if player == 2:
+			self.relations_player2.append(world)
+
 
 	# check if an opponent has a certain card in all worlds accessible from this world by the player
 	def has_card_in_all_worlds(self, player, opponent, card):
-		for relation in self.relations[player]:
-			# there exists an accessible world in which the opponent does not have 'card'
-			if not card in relation.get_cards(opponent, visible_cards=False):
-				return False
+		if player == 0:
+			for relation in self.relations_player0:
+				# there exists an accessible world in which the opponent does not have 'card'
+				if not card in relation.get_cards(opponent, visible_cards=False):
+					return False
+		if player == 1:
+			for relation in self.relations_player1:
+				# there exists an accessible world in which the opponent does not have 'card'
+				if not card in relation.get_cards(opponent, visible_cards=False):
+					return False
+		if player == 2:
+			for relation in self.relations_player2:
+				# there exists an accessible world in which the opponent does not have 'card'
+				if not card in relation.get_cards(opponent, visible_cards=False):
+					return False
 		return True
 
 	# check whether the player can be certain that the opponent does not have a specific cart
 	def does_not_have_card_in_any_world(self, player, opponent, card):
-		for relation in self.relations[player]:
-			if card in relation.get_cards(opponent, visible_cards=True):
-				return False
+		if player == 0:
+			for relation in self.relations_player0:
+				if card in relation.get_cards(opponent, visible_cards=True):
+					return False
+		if player == 1:
+			for relation in self.relations_player1:
+				if card in relation.get_cards(opponent, visible_cards=True):
+					return False
+		if player == 2:
+			for relation in self.relations_player2:
+				if card in relation.get_cards(opponent, visible_cards=True):
+					return False
 		return True
 
 	# check whether the formulas in the argument are the same as the ones in this world
@@ -194,39 +211,40 @@ class World:
 
 	# remove all relations (except the reflexive relation) from this world
 	def remove_relations(self):
-		self.relations = [[self]] * self.n_players
+		self.relations_player0 = [self]
+		self.relations_player1 = [self]
+		self.relations_player2 = [self]
 
 	def remove_relations_player(self, player):
-		self.relations[player] = []
+		if player == 0:
+			self.relations_player0 = []
+		if player == 1:
+			self.relations_player1 = []
+		if player == 2:
+			self.relations_player1 = []
 
 	# count the number of relations from this world to itself and other worlds
 	def count_relations(self):
 		count = 0
 		count += len(self.relations_player0)
 		count += len(self.relations_player1)
-
+		count += len(self.relations_player2)
 		return count
 
 
 def main():
 	cards = ['assassin', 'countessa', 'captain', 'duke']
-	model = KripkeModel(n_players=2, cards=cards)
+	# n_players = 3
+	model = KripkeModel(3, cards=cards)
 	model.flip_card(1, 'assassin')
 	model.flip_card(1, 'assassin')
+	model.flip_card(2, 'countessa')
 
-	other_card = 'countessa'
-	own_hand = ['countessa', 'duke']
+
+	other_card = 'assassin'
+	own_hand = ['assassin', 'duke']
 	player = 0
-	other_player = 1
-	worlds = model.worlds
-
-	# for world in worlds:
-	# 	this_cards = world.formulas
-	# 	print()
-	# 	print(this_cards)
-	# 	for i, w in enumerate(world.relations_player0):
-	# 		print(w.formulas)
-
+	other_player = 2
 
 	if model.query(own_hand, player, other_player, True, other_card):
 		print("Player {0} knows that player {1} has card {2}".format(player, other_player, other_card))

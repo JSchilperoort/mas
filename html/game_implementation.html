@@ -42,14 +42,28 @@
 
       <div class="container-fluid">
         <h1 class="mt-4">Game Implementation</h1>
-        <p>The starting state of the menu will appear collapsed on smaller screens, and will appear non-collapsed on larger screens. When toggled using the button below, the menu will change.</p>
-        <p>Make sure to keep all page content within the <code>#page-content-wrapper</code>. The top navbar is optional, and just for demonstration. Just create an element with the <code>#menu-toggle</code> ID which will toggle the menu when clicked.</p>
+        Our game is implemented in Python. We use TkInter for the graphical user interface. The implementation consists of the following files (as well as some helper files which are not explained in detail):
 
-        
-        <img src="../img/coup.jpg" alt="Coup Image" style="width:1000px;height:600px;">
+       <h4 class="mt-4">Interface.py:</h4> 
+       Main file for running the application using the GUI. Initializes a Coup instane with a given number of players.
 
-        <p>The starting state of the menu will appear collapsed on smaller screens, and will appear non-collapsed on larger screens. When toggled using the button below, the menu will change.</p>
-        <p>Make sure to keep all page content within the <code>#page-content-wrapper</code>. The top navbar is optional, and just for demonstration. Just create an element with the <code>#menu-toggle</code> ID which will toggle the menu when clicked.</p>
+       <h4 class="mt-4">Game.py:</h4> 
+       Main file for running the application from the command line. Initializes a Coup instane with a given number of players.
+
+       <h4 class="mt-4">Coup.py:</h4> 
+       Contains the implementation of the game itself. The class contains functions for creating agents, the deck and dealing the cards to the agents. All agents are given two coins as well. Most importantly, the choose_action function is defined here which is the function where an agent chooses an action based on the corresponding Kripke model.
+
+       <h4 class="mt-4">Action.py:</h4> 
+       Contains the possible actions that an agent can choose.
+
+       <h4 class="mt-4">Agent.py:</h4> 
+       Contains all getters and setters for an agent instancs such as adding/removing cards and coins.
+
+       <h4 class="mt-4">Card.py:</h4> 
+       Contiains the relations between a card and the actual actions the card provides.
+
+       <h4 class="mt-4">Kripke.py:</h4> 
+       Contains all the code used for generating our Kripke models, as well as the query code which agents use to check their knowledge and beliefs.
       </div>
 
       <div class="container-fluid">

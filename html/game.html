@@ -15,7 +15,26 @@
 
   <!-- Custom styles for this template -->
   <link href="../css/simple-sidebar.css" rel="stylesheet">
+<style>
+* {
+  box-sizing: border-box;
+}
 
+.column {
+  float: left;
+  width: 33.33%;
+  padding: 5px;
+
+}
+
+/* Clearfix (clear floats) */
+.row::after {
+  content: "";
+  clear: both;
+  display: table;
+
+}
+</style>
 </head>
 
 <body>
@@ -42,20 +61,53 @@
 
       <div class="container-fluid">
         <h1 class="mt-4">Game Overview</h1>
-        <p>The starting state of the menu will appear collapsed on smaller screens, and will appear non-collapsed on larger screens. When toggled using the button below, the menu will change.</p>
-        <p>Make sure to keep all page content within the <code>#page-content-wrapper</code>. The top navbar is optional, and just for demonstration. Just create an element with the <code>#menu-toggle</code> ID which will toggle the menu when clicked.</p>
 
+        Coup is a cardgame that revolves around strategy and bluffing. The game is played with 2-6 players and there are five unique cards each with their own abilities, namely the captain, duke, ambassador, assassin and countessa. There are three copies of each card in the deck, and each player starts with two random cards and two coins. The objective of the game is to be the only player with cards left. 
 
         <img src="../img/coup.jpg" alt="Coup Image" style="width:1000px;height:600px;">
 
-        <p>The starting state of the menu will appear collapsed on smaller screens, and will appear non-collapsed on larger screens. When toggled using the button below, the menu will change.</p>
-        <p>Make sure to keep all page content within the <code>#page-content-wrapper</code>. The top navbar is optional, and just for demonstration. Just create an element with the <code>#menu-toggle</code> ID which will toggle the menu when clicked.</p>
+
       </div>
 
       <div class="container-fluid">
-        <h1 class="mt-4">Game Overview</h1>
+        <h1 class="mt-4">Cards</h1>
 
-        Coup is a cardgame that revolves around strategy and bluffing. The game is played with 2-6 players and there are five unique cards each with their own abilities, namely the captain, duke, ambassador, assassin and countessa. There are three copies of each card in the deck, and each player starts with two random cards and two coins. The objective of the game is to be the only player with cards left. 
+
+        <h4 class="mt-4">Duke</h4>
+
+        <img src="../img/duke.jpg" alt="Snow" style="width:10%;height:10%;"> <br>
+
+        <h4 class="mt-4">Assassin</h4>
+        <img src="../img/assassin.jpg" alt="Snow" style="width:10%;height:10%;"> <br>
+
+        <h4 class="mt-4">Captain</h4>
+        <img src="../img/captain.jpg" alt="Snow" style="width:10%;height:10%;"> <br>
+
+        <h4 class="mt-4">Countessa</h4>
+        <img src="../img/contessa.jpg" alt="Snow" style="width:10%;height:10%;"> <br>
+
+        <h4 class="mt-4">Ambassador</h4>
+        <img src="../img/ambassador.png" alt="Snow" style="width:10%;height:10%;"> <br>
+
+        A round is played as follows: each players chooses one of the possible actions. The possible actions are: <br><br>
+
+        <ul>
+          <li>Income: take one coin.</li>
+          <li>Foreign Aid: take two coins, can be blocked with a duke.</li>
+          <li>Coup: spend seven coins to make one chosen player give up one of their cards.</li>
+          <li>Taxes: take three coins (duke ability).</li>
+          <li>Assassinate: spend three coins to make one chosen player give up one of their cards (assassin ability).</li>
+          <li>Steal: take two coins from another player. Can be blocked with a captain or ambassador (captain ability)</li>
+          <li> Swap Cards: draw two cards from the deck and add them to your hand, choose two out of four and put the remaining two back in the deck (ambassador ability).</li>
+        </ul>
+
+        Furthermore, the countessa has no active ability but can instead be used to block an assassination attempt. A player can choose any action (provided they have enough coins for it), even though they may not actually have the corresponding card. Other players can then choose to believe the player or call their bluff. When a wrongful bluff is called, the player calling the bluff loses one card. 
+
+      </div>
+
+      <div class="container-fluid">
+        <h1 class="mt-4">Rules</h1>
+
         A round is played as follows: each players chooses one of the possible actions. The possible actions are: <br><br>
 
         <ul>

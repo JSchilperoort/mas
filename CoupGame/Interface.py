@@ -263,7 +263,7 @@ if __name__ == "__main__":
     root.geometry('1600x900')
     root.update()
 
-    game = Coup(4)
+    game = Coup(3)
 
     MainApplication(root,  game).grid()
     root.mainloop()

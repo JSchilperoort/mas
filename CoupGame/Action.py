@@ -6,11 +6,13 @@ class Action():
 		elif action == Actions.Foreign_Aid:
 			self.forgein_aid(agent)
 		elif action == Actions.Assasinate:
-			self.assassinate(agent, target)
+			card = self.assassinate(agent, target)
+			return card
 		elif action == Actions.Income:
 			self.income(agent)
 		elif action == Actions.Coup:
-			self.coup(agent, target)
+			card = self.coup(agent, target)
+			return card
 		elif action == Actions.Steal:
 			self.steal(agent, target)
 		elif action == Actions.Swap_Influence:
@@ -30,14 +32,16 @@ class Action():
 
 	def assassinate(self, agent, target):
 		agent.remove_coins(3)
-		target.remove_card()
+		card = target.remove_card()
+		return card
 
 	def income(self, agent):
 		agent.add_coins(1)
 
 	def coup(self, agent, target):
 		agent.remove_coins(7)
-		target.remove_card()
+		card = target.remove_card()
+		return card
 
 	def steal(self, agent, target):
 		if target.get_coins() == 0:

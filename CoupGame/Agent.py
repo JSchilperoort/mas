@@ -27,10 +27,12 @@ class Agent:
 			self.dead_cards.append(card)
 		except:
 			print("Failed removing card for agent:" + str(self.identifier))
+			card = self.dead_cards[0]
 			pass
 		if len(self.cards) <= 0:
 			self.alive = False
 			print("-- player", self.identifier, "was killed")
+		return card
 		
 	def get_cards(self):
 		return self.cards

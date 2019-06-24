@@ -42,7 +42,11 @@
 
       <div class="container-fluid">
         <h1 class="mt-4">Game Implementation</h1>
-        Our game is implemented in Python. We use TkInter for the graphical user interface. The implementation consists of the following files (as well as some helper files which are not explained in detail):
+
+
+        <p>Our game is implemented in Python. We use TkInter for the graphical user interface. </p> 
+        <h2 class="mt-4">File Structure</h2>
+        <p>The implementation consists of the following files (as well as some helper files which are not explained in detail): </p>
 
        <h4 class="mt-4">Interface.py:</h4> 
        Main file for running the application using the GUI. Initializes a Coup instane with a given number of players.
@@ -64,27 +68,19 @@
 
        <h4 class="mt-4">Kripke.py:</h4> 
        Contains all the code used for generating our Kripke models, as well as the query code which agents use to check their knowledge and beliefs.
-      </div>
 
-      <div class="container-fluid">
-        <h1 class="mt-4">Game Overview</h1>
 
-        Coup is a cardgame that revolves around strategy and bluffing. The game is played with 2-6 players and there are five unique cards each with their own abilities, namely the captain, duke, ambassador, assassin and countessa. There are three copies of each card in the deck, and each player starts with two random cards and two coins. The objective of the game is to be the only player with cards left. 
-        A round is played as follows: each players chooses one of the possible actions. The possible actions are: <br><br>
 
-        <ul>
-          <li>Income: take one coin.</li>
-          <li>Foreign Aid: take two coins, can be blocked with a duke.</li>
-          <li>Coup: spend seven coins to make one chosen player give up one of their cards.</li>
-          <li>Taxes: take three coins (duke ability).</li>
-          <li>Assassinate: spend three coins to make one chosen player give up one of their cards (assassin ability).</li>
-          <li>Steal: take two coins from another player. Can be blocked with a captain or ambassador (captain ability)</li>
-          <li> Swap Cards: draw two cards from the deck and add them to your hand, choose two out of four and put the remaining two back in the deck (ambassador ability).</li>
-        </ul>
+       <h2 class="mt-4">General Flow of the Program</h2>
+       Below  is a flowchart showing the general flow  of a single session of the game. <br>
+       <img src="../img/coup_flowchart.png" alt="Coup Image" style="width:65%;height:50%;">
 
-        Furthermore, the countessa has no active ability but can instead be used to block an assassination attempt. A player can choose any action (provided they have enough coins for it), even though they may not actually have the corresponding card. Other players can then choose to believe the player or call their bluff. When a wrongful bluff is called, the player calling the bluff loses one card. 
 
       </div>
+
+
+
+
 
 
     </div>

@@ -106,7 +106,7 @@ class MainApplication(tk.Frame):
             coin_label.grid(row=1, column=1)
             self.coin_labels.append(coin_label)
             # Coin image label
-            tk.Label(coin_frame, image=self.load_image("../images/coin.jpg", size=(25,25)), bg="#fdeca6").grid(row=1, column=2, sticky="nw")
+            tk.Label(coin_frame, image=self.load_image("images/coin.jpg", size=(25,25)), bg="#fdeca6").grid(row=1, column=2, sticky="nw")
 
             # Initialize action frame that contains gameplay text
             action_frame = tk.Frame(player_frame, width=50, height=200)
@@ -271,9 +271,9 @@ class MainApplication(tk.Frame):
     def card_image_path(self, influence, dead=False):
         # Returns the path for the card name"
         if dead:
-            path = "../images/dead_"
+            path = "images/dead_"
         else:
-            path = "../images/"
+            path = "images/"
 
         if influence is Influence.Ambassador:
             return path+"ambassador.png"

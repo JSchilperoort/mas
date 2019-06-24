@@ -34,10 +34,10 @@ class KripkeModel:
 		print("\nsetting relations...")
 		for player in range(self.n_players):
 			for i_w, world in enumerate(self.worlds):
-				w1_cards = world.get_cards(player)
+				w1_cards = world.get_cards(player, visible_cards=True)
 				# this loop can start after world i_w since all relations are reflexive
 				for world2 in self.worlds[i_w + 1:]:
-					w2_cards = world2.get_cards(player)
+					w2_cards = world2.get_cards(player, visible_cards=True)
 					# if this player has the same cards in both worlds, add relation
 					if w1_cards == w2_cards:
 						# set relation in both directions
@@ -67,7 +67,8 @@ class KripkeModel:
 	# in 'world', does 'player' know that 'opponent' has 'boolean' 'card'
 	def query(self, cards_player, player, opponent, boolean, card):
 		for world in self.worlds:
-			if cards_player[0] == world.get_cards(player)[0] and cards_player[1] == world.get_cards(player)[1] or cards_player[0] == world.get_cards(player)[1] and cards_player[1] == world.get_cards(player)[0]:
+			other_hand = world.get_cards(player, visible_cards=True)
+			if self.same_hand(cards_player, other_hand):
 				if boolean:
 					if not world.has_card_in_all_worlds(player, opponent, card):
 						return False
@@ -75,6 +76,12 @@ class KripkeModel:
 					if not world.does_not_have_card_in_any_world(player, opponent, card):
 						return False
 		return True
+
+	def same_hand(self, cards1, cards2):
+		if len(cards1) == len(cards2):
+			if (cards1[0] == cards2[0] and cards1[1] == cards2[1]) or (cards1[0] == cards2[1] and cards1[1] == cards2[0]):
+				return True
+		return False
 
 	# make a card of a given player visible
 	def flip_card(self, player, card):
@@ -111,14 +118,16 @@ class World:
 	# check if an opponent has a certain card in all worlds accessible from this world by the player
 	def has_card_in_all_worlds(self, player, opponent, card):
 		for relation in self.relations[player]:
-			if not card in relation.get_cards(opponent):
+			# there exists an accessible world in which the opponent does not have 'card'
+			if not card in relation.get_cards(opponent, visible_cards=False):
+				# TODO need to check for 'visible'
 				return False
 		return True
 
 	# check whether the player can be certain that the opponent does not have a specific cart
 	def does_not_have_card_in_any_world(self, player, opponent, card):
 		for relation in self.relations[player]:
-			if card in relation.get_cards(opponent):
+			if card in relation.get_cards(opponent, visible_cards=True):
 				return False
 		return True
 
@@ -132,8 +141,15 @@ class World:
 		return True
 
 	# return the hand of a player
-	def get_cards(self, player):
-		return self.formulas[player]
+	def get_cards(self, player, visible_cards):
+		return_cards = list()
+		for i, c in enumerate(self.formulas[player]):
+			if visible_cards:
+				return_cards.append(self.formulas[player][i])
+			else:
+				if not self.visible_cards[player][i]:
+					return_cards.append(self.formulas[player][i])
+		return return_cards
 
 	# check whether it is possible to flip a given card for a given player
 	def can_flip(self, player, flip_card):
@@ -163,22 +179,26 @@ class World:
 
 def main():
 	cards = ['assassin', 'countessa', 'captain', 'duke']
-	model = KripkeModel(n_players=4, cards=cards)
-	model.flip_card(2, 'assassin')
-	model.flip_card(2, 'assassin')
+	model = KripkeModel(n_players=3, cards=cards)
+	model.flip_card(2, 'captain')
+	model.flip_card(2, 'captain')
 	model.flip_card(1, 'assassin')
-	model.flip_card(1, 'countessa')
-	model.flip_card(0, 'countessa')
-	model.flip_card(0, 'countessa')
-	# if model.query(['duke', 'assassin'], 1, 2, True, 'captain'):
-	# 	print("Player {0} knows that player {1} has card {2}".format(1, 2, 'captain'))
-	# else:
-	# 	print("Player {0} does not know whether player {1} has card {2}".format(1, 2, 'captain'))
-	#
-	# if model.query(['duke', 'assassin'], 1, 2, False, 'captain'):
-	# 	print("Player {0} knows that player {1} does not have card {2}".format(1, 2, 'captain'))
-	# else:
-	# 	print("Player {0} does not know whether player {1} does not have card {2}".format(1, 2, 'captain'))
+	model.flip_card(1, 'assassin')
+	model.flip_card(0, 'captain')
+
+	other_card = 'assassin'
+	own_hand = ['assassin', 'assassin']
+	player = 1
+	other_player = 0
+	if model.query(own_hand, player, other_player, True, other_card):
+		print("Player {0} knows that player {1} has card {2}".format(player, other_player, other_card))
+	else:
+		print("Player {0} does not know whether player {1} has card {2}".format(player, other_player, other_card))
+
+	if model.query(own_hand, player,  other_player, False, other_card):
+		print("Player {0} knows that player {1} does not have card {2}".format(player, other_player, other_card))
+	else:
+		print("Player {0} does not know whether player {1} does not have card {2}".format(player, other_player, other_card))
 
 	# 2 players = 96 worlds, 828 relations   ~0 seconds
 	# 3 players = 780 worlds, 90900 relations   ~0 seconds

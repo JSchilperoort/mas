@@ -40,8 +40,12 @@
     <div id="page-content-wrapper">
 
 
-      <div class="container-fluid">
+      <div class="container">
+
         <h1 class="mt-4">Epistemic Logic in Coup</h1>
+        <div class="row">
+        <div class="col-sm-12">
+
         <p>In our implementation of the card game we have used several of the subjects that are part of the course material. We have also deliberately refrained from using some parts of the material that might at first seem applicable. Additionally, we have implemented the concept of lying public announcements which is not part of the course material, but is discussed in the 2014 paper by Hans van Ditmarsch, Dynamics of lying. First we will discuss what parts of epistemic logic we readily used as it was presented in the course. Secondly we will argue why we have not used action models, even though they could be seen as a natural fit for Coup. Finally we will discuss some logic from Dynamics of lying, and explain why we chose to use what we did.</p>
 
         <h4 class="mt-4">Course Material</h4>
@@ -54,6 +58,9 @@
         <h4 class="mt-4">Dynamics of Lying</h4>
 		<p>A big part of Coup is 'bluffing' or in proper epistemic speak, making lying public announcements. We use terminology from the paper by Hans van Ditmarsch. In the paper a distinction is made between truthful public announcements [!p], lying public announcements [¡p] and bluffing public announcements [!¡p]. Whenever an action or block takes place, this is implemented as a truthful or lying public announcement, when an agent does or does not have the corresponding influence card, respectively. Bluffing public announcements take place when the announcing agent does not know whether p. Bluffing public announcements can only take place in Coup when an agent decides to challenge an action or block, without being able to infer from his knowledge whether or not the challenge will be successful.</p>
         <p>In the article a strong distinction is made between outside observer to agent(s) announcements, and agent to agent announcements. In the case of agent to agent announcements, these are notably different since, when believed, will yield not only new information for the addressee but also beliefs about the knowledge of the announcer. Since in our implementation beliefs of any kind are excluded, and knowledge about other agents' knowledge is contained in the common knowledge only, all announcements can effectively be modelled as outside observer public announcements. </p>
+
+</div>
+        </div>
 	  </div>
     </div>
     <!-- /#page-content-wrapper -->
